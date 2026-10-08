@@ -35,14 +35,15 @@ http.createServer((req, res) => {
   console.log(`🌐 24/7 Keep-Alive HTTP Server running on port ${PORT}`);
 });
 
-// Self-ping every 5 minutes to prevent Render free tier from sleeping
-setInterval(() => {
-  http.get(RENDER_URL, (res) => {
-    console.log(`📡 Keep-Alive self-ping sent to ${RENDER_URL} [Status: ${res.statusCode}]`);
-  }).on('error', (err) => {
-    // Ignore transient network errors
-  });
-}, 5 * 60 * 1000);
+// Self-ping every 3 minutes to keep Render free tier 100% awake 24/7
+setInterval(async () => {
+  try {
+    const res = await fetch(RENDER_URL);
+    console.log(`📡 Keep-Alive self-ping sent to ${RENDER_URL} [Status: ${res.status}]`);
+  } catch (err) {
+    console.log(`📡 Self-ping attempt: ${err.message}`);
+  }
+}, 3 * 60 * 1000);
 
 const CONFIG_PATH = path.join(__dirname, 'config.json');
 const TOKEN = process.env.DISCORD_BOT_TOKEN;
@@ -510,20 +511,30 @@ client.on('interactionCreate', async interaction => {
 
       if (commandName === 'postnow') {
         const wizard = createPostWizardProductMessage();
-        await interaction.reply({ ...wizard, flags: [MessageFlags.Ephemeral] });
+        await interaction.reply({ ...wizard, flags: [MessageFlags.Ephemeral] }).catch(() => {});
       }
       else if (commandName === 'panel') {
         const embed = createDashboardEmbed();
         const components = createDashboardComponents();
-        await interaction.reply({ embeds: [embed], components: components });
+        await interaction.reply({ embeds: [embed], components: components }).catch(async () => {
+          if (!interaction.replied && !interaction.deferred) {
+            await interaction.deferReply().catch(() => {});
+            await interaction.editReply({ embeds: [embed], components: components }).catch(() => {});
+          }
+        });
       }
       else if (commandName === 'setup' || commandName === 'channels') {
         const embed = createChannelsEmbed();
         const components = createChannelsComponents();
-        await interaction.reply({ embeds: [embed], components: components });
+        await interaction.reply({ embeds: [embed], components: components }).catch(async () => {
+          if (!interaction.replied && !interaction.deferred) {
+            await interaction.deferReply().catch(() => {});
+            await interaction.editReply({ embeds: [embed], components: components }).catch(() => {});
+          }
+        });
       }
       else {
-        await interaction.reply({ content: 'Use `/postnow` to post, `/panel` for products control, or `/setup` for channels!', flags: [MessageFlags.Ephemeral] });
+        await interaction.reply({ content: 'Use `/postnow` to post, `/panel` for products control, or `/setup` for channels!', flags: [MessageFlags.Ephemeral] }).catch(() => {});
       }
     }
 
