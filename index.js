@@ -23,8 +23,10 @@ const {
   ChannelType
 } = require('discord.js');
 
-// Tiny HTTP server for 24/7 Cloud Host keep-alive (Render/Replit/Koyeb/Discloud)
+// 24/7 Keep-Alive HTTP Server with Self-Ping to prevent Render free instance from sleeping
 const PORT = process.env.PORT || 3000;
+const RENDER_URL = process.env.RENDER_EXTERNAL_URL || 'https://shivaayx-bot.onrender.com';
+
 http.createServer((req, res) => {
   res.writeHead(200, { 'Content-Type': 'text/html' });
   res.write('<h1>SHIVAAY X Sell-Proof Bot is ONLINE 24/7 🚀</h1>');
@@ -32,6 +34,15 @@ http.createServer((req, res) => {
 }).listen(PORT, () => {
   console.log(`🌐 24/7 Keep-Alive HTTP Server running on port ${PORT}`);
 });
+
+// Self-ping every 5 minutes to prevent Render free tier from sleeping
+setInterval(() => {
+  http.get(RENDER_URL, (res) => {
+    console.log(`📡 Keep-Alive self-ping sent to ${RENDER_URL} [Status: ${res.statusCode}]`);
+  }).on('error', (err) => {
+    // Ignore transient network errors
+  });
+}, 5 * 60 * 1000);
 
 const CONFIG_PATH = path.join(__dirname, 'config.json');
 const TOKEN = process.env.DISCORD_BOT_TOKEN;
