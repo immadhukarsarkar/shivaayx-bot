@@ -20,7 +20,8 @@ const {
   SlashCommandBuilder, 
   PermissionFlagsBits,
   MessageFlags,
-  ChannelType
+  ChannelType,
+  ActivityType
 } = require('discord.js');
 
 // 24/7 Keep-Alive HTTP Server with Self-Ping to prevent Render free instance from sleeping
@@ -555,6 +556,11 @@ client.on('guildMemberAdd', async (member) => {
 
 client.once('clientReady', async () => {
   console.log(`🤖 Logged in as ${client.user.tag}!`);
+
+  client.user.setPresence({
+    activities: [{ name: 'SHIVAAY X | /welcome | /panel', type: ActivityType.Watching }],
+    status: 'online'
+  });
 
   if (!config.allowedGuildId && client.guilds.cache.size > 0) {
     config.allowedGuildId = client.guilds.cache.first().id;
