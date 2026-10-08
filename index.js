@@ -526,9 +526,7 @@ function createWelcomeEmbed(userMention, avatarUrl, memberCount = null) {
       `Need help or want to order something?\n` +
       `Create a ticket in ${ticketText}.\n\n` +
       `Enjoy your stay. 🖤`
-    )
-    .setImage(gifUrl)
-    .setFooter({ text: memberCount ? `👑 Member #${memberCount} • ${brand}` : `👑 ${brand} Community`, iconURL: client.user ? client.user.displayAvatarURL() : undefined });
+    .setImage(gifUrl);
 
   return embed;
 }
