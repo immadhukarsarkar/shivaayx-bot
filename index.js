@@ -436,6 +436,20 @@ async function registerSlashCommands() {
     new SlashCommandBuilder()
       .setName('setup')
       .setDescription('Open the Interactive Channel Setup Popup')
+      .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+
+    new SlashCommandBuilder()
+      .setName('welcometest')
+      .setDescription('Test the Real or Fake Welcome Join Embed')
+      .addStringOption(option =>
+        option.setName('type')
+          .setDescription('Choose real welcome or fake join test')
+          .setRequired(false)
+          .addChoices(
+            { name: 'Fake Join (<@14460...>)', value: 'fake' },
+            { name: 'Real Member Welcome', value: 'real' }
+          )
+      )
       .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
   ];
 
@@ -612,8 +626,27 @@ client.on('interactionCreate', async interaction => {
           }
         });
       }
+      else if (commandName === 'welcometest') {
+        const type = interaction.options.getString('type') || 'fake';
+        await interaction.reply({ content: `⏳ Triggering **${type.toUpperCase()}** Welcome Test...`, flags: [MessageFlags.Ephemeral] }).catch(() => {});
+
+        const channel = findWelcomeChannel(interaction.guild);
+        if (!channel) {
+          await interaction.editReply({ content: '❌ Could not find a welcome channel! Create a channel named `#welcome` or configure it.' }).catch(() => {});
+          return;
+        }
+
+        if (type === 'fake') {
+          await triggerFakeWelcome();
+          await interaction.editReply({ content: `✅ Posted **Fake Join Test** (<@14460...>) in ${channel}!` }).catch(() => {});
+        } else {
+          const embed = createWelcomeEmbed(interaction.user.toString(), interaction.user.displayAvatarURL(), interaction.guild.memberCount);
+          await channel.send({ content: `👋 Welcome ${interaction.user.toString()}!`, embeds: [embed] }).catch(() => {});
+          await interaction.editReply({ content: `✅ Posted **Real Member Welcome Test** in ${channel}!` }).catch(() => {});
+        }
+      }
       else {
-        await interaction.reply({ content: 'Use `/postnow` to post, `/panel` for products control, or `/setup` for channels!', flags: [MessageFlags.Ephemeral] }).catch(() => {});
+        await interaction.reply({ content: 'Use `/postnow` to post, `/panel` for products control, `/setup` for channels, or `/welcometest` to test welcome!', flags: [MessageFlags.Ephemeral] }).catch(() => {});
       }
     }
 
