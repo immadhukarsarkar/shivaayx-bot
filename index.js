@@ -365,21 +365,29 @@ async function sendViaWebhook(channel, options) {
     const webhooks = await channel.fetchWebhooks();
     let webhook = webhooks.find(wh => wh.owner && wh.owner.id === client.user.id);
 
+    let avatar = options.avatarURL || config.staticLogoUrl || config.logoUrl || (client.user ? client.user.displayAvatarURL() : undefined);
+    if (avatar && (avatar.includes('.gif') || !avatar.startsWith('http'))) {
+      avatar = config.staticLogoUrl || 'https://i.imgur.com/8Q9Z5bX.png';
+    }
+
     if (!webhook) {
       webhook = await channel.createWebhook({
         name: `${config.brandName || 'SHIVAAY X'} Webhook`,
-        avatar: config.logoUrl && config.logoUrl.startsWith('http') ? config.logoUrl : (client.user ? client.user.displayAvatarURL() : undefined)
-      });
+        avatar: avatar
+      }).catch(() => null);
     }
 
-    await webhook.send({
-      username: options.username || `${config.brandName || 'SHIVAAY X'} System`,
-      avatarURL: options.avatarURL || config.logoUrl || (client.user ? client.user.displayAvatarURL() : undefined),
-      content: options.content,
-      embeds: options.embeds,
-      components: options.components
-    });
-    return true;
+    if (webhook) {
+      await webhook.send({
+        username: options.username || `${config.brandName || 'SHIVAAY X'} System`,
+        avatarURL: avatar,
+        content: options.content,
+        embeds: options.embeds,
+        components: options.components
+      });
+      return true;
+    }
+    throw new Error('Webhook unavailable');
   } catch (err) {
     await channel.send({ content: options.content, embeds: options.embeds, components: options.components }).catch(() => {});
     return false;
