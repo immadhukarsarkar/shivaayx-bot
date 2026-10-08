@@ -360,6 +360,32 @@ function createPostWizardDurationMessage(selectedProduct) {
   return { embeds: [embed], components: [row1, row2] };
 }
 
+async function sendViaWebhook(channel, options) {
+  try {
+    const webhooks = await channel.fetchWebhooks();
+    let webhook = webhooks.find(wh => wh.owner && wh.owner.id === client.user.id);
+
+    if (!webhook) {
+      webhook = await channel.createWebhook({
+        name: `${config.brandName || 'SHIVAAY X'} Webhook`,
+        avatar: config.logoUrl && config.logoUrl.startsWith('http') ? config.logoUrl : (client.user ? client.user.displayAvatarURL() : undefined)
+      });
+    }
+
+    await webhook.send({
+      username: options.username || `${config.brandName || 'SHIVAAY X'} System`,
+      avatarURL: options.avatarURL || config.logoUrl || (client.user ? client.user.displayAvatarURL() : undefined),
+      content: options.content,
+      embeds: options.embeds,
+      components: options.components
+    });
+    return true;
+  } catch (err) {
+    await channel.send({ content: options.content, embeds: options.embeds, components: options.components }).catch(() => {});
+    return false;
+  }
+}
+
 async function sendSellProof(product, duration, securityStatus, customerMention = null, overrideChannelId = null) {
   const channelId = overrideChannelId || config.targetChannelId;
   if (!channelId) {
@@ -374,8 +400,14 @@ async function sendSellProof(product, duration, securityStatus, customerMention 
     const embed = createSellProofEmbed(product, duration, securityStatus, customerMention);
     const row = createButtonRow(channel.guild ? channel.guild.id : null);
 
-    await channel.send({ embeds: [embed], components: [row] });
-    console.log(`✅ Posted Sell Proof: ${product} (${duration}) to #${channel.name}`);
+    await sendViaWebhook(channel, {
+      username: `${config.brandName || 'SHIVAAY X'} Billing System`,
+      avatarURL: config.logoUrl,
+      embeds: [embed],
+      components: [row]
+    });
+
+    console.log(`✅ Posted Sell Proof via Webhook: ${product} (${duration}) to #${channel.name}`);
     return { success: true, product, duration };
   } catch (error) {
     console.error(`❌ Error sending sell proof to ${channelId}:`, error.message);
@@ -536,8 +568,13 @@ async function triggerFakeWelcome() {
   const memberCount = (guild.memberCount || 100) + Math.floor(Math.random() * 15);
 
   const embed = createWelcomeEmbed(fakeMention, fakeAvatar, memberCount);
-  await channel.send({ content: `👋 Welcome ${fakeMention}!`, embeds: [embed] }).catch(() => {});
-  console.log(`🎉 Posted Fake Welcome Join for ${fakeMention} in #${channel.name}`);
+  await sendViaWebhook(channel, {
+    username: `${config.brandName || 'SHIVAAY X'} Welcome System`,
+    avatarURL: config.logoUrl,
+    content: `👋 Welcome ${fakeMention}!`,
+    embeds: [embed]
+  });
+  console.log(`🎉 Posted Fake Welcome Join via Webhook for ${fakeMention} in #${channel.name}`);
 }
 
 function scheduleNextFakeWelcome() {
@@ -557,8 +594,13 @@ client.on('guildMemberAdd', async (member) => {
   const channel = findWelcomeChannel(member.guild);
   if (channel) {
     const embed = createWelcomeEmbed(member.user.toString(), member.user.displayAvatarURL(), member.guild.memberCount);
-    await channel.send({ content: `👋 Welcome ${member.user.toString()}!`, embeds: [embed] }).catch(() => {});
-    console.log(`🎉 Posted Real Member Welcome for ${member.user.tag} in #${channel.name}`);
+    await sendViaWebhook(channel, {
+      username: `${config.brandName || 'SHIVAAY X'} Welcome System`,
+      avatarURL: config.logoUrl,
+      content: `👋 Welcome ${member.user.toString()}!`,
+      embeds: [embed]
+    });
+    console.log(`🎉 Posted Real Member Welcome via Webhook for ${member.user.tag} in #${channel.name}`);
   }
 });
 
