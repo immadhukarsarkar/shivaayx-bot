@@ -1,0 +1,19 @@
+{
+  "allowedGuildId": "795975960162730054",
+  "targetChannelId": "1557786131381362828",
+  "ticketChannelId": "1497208178319032583",
+  "autoPosterEnabled": true,
+  "brandName": "SHIVAAY X",
+  "logoUrl": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHpuc3pndmdsMGcyeWVwb3FmNXU3dnRpaGNyeGZrbzV3bGl6aXRqYiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/26tP41FH76a1YvkoU/giphy.gif",
+  "productsMap": {
+    "Basic Panel": true,
+    "Aim Silent": true,
+    "UID Bypass": true,
+    "FPS Booster": true,
+    "HG Cheats": true,
+    "Drip Client": true,
+    "Prime Mod": true,
+    "iOS Panel": true,
+    "FREE FIRE ID": false
+  }
+}
