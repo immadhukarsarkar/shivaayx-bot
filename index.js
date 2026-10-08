@@ -440,8 +440,8 @@ async function registerSlashCommands() {
       .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
     new SlashCommandBuilder()
-      .setName('welcometest')
-      .setDescription('Test posting a Welcome Card in welcome channel')
+      .setName('welcome')
+      .setDescription('Post a Welcome Card in welcome channel')
       .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
   ];
 
@@ -617,8 +617,8 @@ client.on('interactionCreate', async interaction => {
           }
         });
       }
-      else if (commandName === 'welcometest') {
-        await interaction.reply({ content: `⏳ Triggering **Welcome Card Test**...`, flags: [MessageFlags.Ephemeral] }).catch(() => {});
+      else if (commandName === 'welcome') {
+        await interaction.reply({ content: `⏳ Triggering **Welcome Card**...`, flags: [MessageFlags.Ephemeral] }).catch(() => {});
 
         const channel = findWelcomeChannel(interaction.guild);
         if (!channel) {
@@ -630,7 +630,7 @@ client.on('interactionCreate', async interaction => {
         await interaction.editReply({ content: `✅ Posted **Welcome Card** in ${channel}!` }).catch(() => {});
       }
       else {
-        await interaction.reply({ content: 'Use `/postnow` to post, `/panel` for products control, `/setup` for channels, or `/welcometest` to test welcome!', flags: [MessageFlags.Ephemeral] }).catch(() => {});
+        await interaction.reply({ content: 'Use `/postnow` to post, `/panel` for products control, `/setup` for channels, or `/welcome` to post welcome card!', flags: [MessageFlags.Ephemeral] }).catch(() => {});
       }
     }
 
