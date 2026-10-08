@@ -526,6 +526,7 @@ function createWelcomeEmbed(userMention, avatarUrl, memberCount = null) {
       `Need help or want to order something?\n` +
       `Create a ticket in ${ticketText}.\n\n` +
       `Enjoy your stay. 🖤`
+    )
     .setImage(gifUrl);
 
   return embed;
