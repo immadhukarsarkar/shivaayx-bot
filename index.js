@@ -528,10 +528,6 @@ function createWelcomeEmbed(userMention, avatarUrl, memberCount = null) {
     .setImage(gifUrl)
     .setFooter({ text: memberCount ? `👑 Member #${memberCount} • ${brand}` : `👑 ${brand} Community`, iconURL: client.user ? client.user.displayAvatarURL() : undefined });
 
-  if (avatarUrl) {
-    embed.setThumbnail(avatarUrl);
-  }
-
   return embed;
 }
 
