@@ -510,20 +510,22 @@ client.on('guildCreate', async (guild) => {
 
 function createWelcomeEmbed(userMention, avatarUrl, memberCount = null) {
   const brand = config.brandName || 'SHIVAAY X';
-  const gifUrl = config.welcomeGifUrl || 'https://i.gifer.com/fetch/w600-preview/3d/3d3d4b68e983ca231efb7ee5eb24a49c.gif';
+  const gifUrl = config.welcomeGifUrl || 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHpuc3pndmdsMGcyeWVwb3FmNXU3dnRpaGNyeGZrbzV3bGl6aXRqYiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/26tP41FH76a1YvkoU/giphy.gif';
   const ticketText = config.ticketChannelId ? `<#${config.ticketChannelId}>` : '`#ticket`';
 
   const embed = new EmbedBuilder()
     .setColor(0x00F0FF) // Neon Cyan
-    .setTitle(`⚡ WELCOME TO ${brand} ⚡`)
+    .setTitle(`⚡ WELCOME TO ${brand}`)
     .setDescription(
-      `Hey ${userMention}, welcome to **${brand}**!\n` +
-      `We are super excited to have you join our community 🎉\n\n` +
-      `▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬`
-    )
-    .addFields(
-      { name: '📜 **Server Rules**', value: 'Make sure to check rules before chatting!', inline: true },
-      { name: '🎫 **Order / Support**', value: `Open a ticket in ${ticketText}`, inline: true }
+      `Hey ${userMention}, welcome to **${brand}**.\n\n` +
+      `A clean community for **Gaming • Panels • Services & More.**\n\n` +
+      `━━━━━━━━━━━━━━━━━━━━\n\n` +
+      `📜 **Rules**\n` +
+      `Please read the server rules before chatting.\n\n` +
+      `🎫 **Support**\n` +
+      `Need help or want to order something?\n` +
+      `Create a ticket in ${ticketText}.\n\n` +
+      `Enjoy your stay. 🖤`
     )
     .setImage(gifUrl)
     .setFooter({ text: memberCount ? `👑 Member #${memberCount} • ${brand}` : `👑 ${brand} Community`, iconURL: client.user ? client.user.displayAvatarURL() : undefined });
