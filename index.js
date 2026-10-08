@@ -472,7 +472,7 @@ async function registerSlashCommands() {
 
     new SlashCommandBuilder()
       .setName('welcometest')
-      .setDescription('Directly trigger an instant Fake Join Embed Test in welcome channel')
+      .setDescription('Test posting a Welcome Card in welcome channel')
       .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
   ];
 
@@ -661,7 +661,7 @@ client.on('interactionCreate', async interaction => {
         });
       }
       else if (commandName === 'welcometest') {
-        await interaction.reply({ content: `⏳ Triggering **Fake Join Embed Test**...`, flags: [MessageFlags.Ephemeral] }).catch(() => {});
+        await interaction.reply({ content: `⏳ Triggering **Welcome Card Test**...`, flags: [MessageFlags.Ephemeral] }).catch(() => {});
 
         const channel = findWelcomeChannel(interaction.guild);
         if (!channel) {
@@ -670,7 +670,7 @@ client.on('interactionCreate', async interaction => {
         }
 
         await triggerFakeWelcome();
-        await interaction.editReply({ content: `✅ Posted **Fake Join Test** (<@14460...>) via Webhook in ${channel}!` }).catch(() => {});
+        await interaction.editReply({ content: `✅ Posted **Welcome Card** via Webhook in ${channel}!` }).catch(() => {});
       }
       else {
         await interaction.reply({ content: 'Use `/postnow` to post, `/panel` for products control, `/setup` for channels, or `/welcometest` to test welcome!', flags: [MessageFlags.Ephemeral] }).catch(() => {});
