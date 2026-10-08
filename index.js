@@ -97,7 +97,8 @@ loadConfig();
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildMessages
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.GuildMembers
   ]
 });
 
@@ -470,6 +471,83 @@ client.on('guildCreate', async (guild) => {
   await enforceGuildLock(guild);
 });
 
+function createWelcomeEmbed(userMention, avatarUrl, memberCount = null) {
+  const brand = config.brandName || 'SHIVAAY X';
+  const gifUrl = config.welcomeGifUrl || 'https://i.gifer.com/fetch/w600-preview/3d/3d3d4b68e983ca231efb7ee5eb24a49c.gif';
+  const ticketText = config.ticketChannelId ? `<#${config.ticketChannelId}>` : '`#ticket`';
+
+  const embed = new EmbedBuilder()
+    .setColor(0x00F0FF) // Neon Cyan
+    .setTitle(`⚡ WELCOME TO ${brand} ⚡`)
+    .setDescription(
+      `Hey ${userMention}, welcome to **${brand}**!\n` +
+      `We are super excited to have you join our community 🎉\n\n` +
+      `▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬`
+    )
+    .addFields(
+      { name: '📜 **Server Rules**', value: 'Make sure to check rules before chatting!', inline: true },
+      { name: '🎫 **Order / Support**', value: `Open a ticket in ${ticketText}`, inline: true }
+    )
+    .setImage(gifUrl)
+    .setFooter({ text: memberCount ? `👑 Member #${memberCount} • ${brand}` : `👑 ${brand} Community`, iconURL: client.user ? client.user.displayAvatarURL() : undefined });
+
+  if (avatarUrl) {
+    embed.setThumbnail(avatarUrl);
+  }
+
+  return embed;
+}
+
+function findWelcomeChannel(guild) {
+  if (config.welcomeChannelId) {
+    const ch = guild.channels.cache.get(config.welcomeChannelId);
+    if (ch) return ch;
+  }
+  return guild.channels.cache.find(c => c.isTextBased() && (c.name.includes('welcome') || c.name.includes('joins')));
+}
+
+async function triggerFakeWelcome() {
+  if (!client.guilds.cache.size) return;
+  const guild = client.guilds.cache.get(config.allowedGuildId) || client.guilds.cache.first();
+  if (!guild) return;
+
+  const channel = findWelcomeChannel(guild);
+  if (!channel) return;
+
+  const fakeUserId = (1300000000000000000n + BigInt(Math.floor(Math.random() * 299999999999999))).toString();
+  const fakeMention = `<@${fakeUserId}>`;
+  
+  const seed = Math.floor(Math.random() * 99999);
+  const fakeAvatar = `https://api.dicebear.com/7.x/bottts/png?seed=${seed}`;
+  const memberCount = (guild.memberCount || 100) + Math.floor(Math.random() * 15);
+
+  const embed = createWelcomeEmbed(fakeMention, fakeAvatar, memberCount);
+  await channel.send({ content: `👋 Welcome ${fakeMention}!`, embeds: [embed] }).catch(() => {});
+  console.log(`🎉 Posted Fake Welcome Join for ${fakeMention} in #${channel.name}`);
+}
+
+function scheduleNextFakeWelcome() {
+  const randomDelayMs = Math.floor(Math.random() * (9000000 - 5400000 + 1)) + 5400000;
+  const minutes = Math.round(randomDelayMs / 60000);
+
+  console.log(`⏰ Next automatic fake welcome scheduled in ${minutes} mins... [Pacing: ~10-15 joins/day]`);
+
+  setTimeout(async () => {
+    await triggerFakeWelcome().catch(() => {});
+    scheduleNextFakeWelcome();
+  }, randomDelayMs);
+}
+
+client.on('guildMemberAdd', async (member) => {
+  await enforceGuildLock(member.guild);
+  const channel = findWelcomeChannel(member.guild);
+  if (channel) {
+    const embed = createWelcomeEmbed(member.user.toString(), member.user.displayAvatarURL(), member.guild.memberCount);
+    await channel.send({ content: `👋 Welcome ${member.user.toString()}!`, embeds: [embed] }).catch(() => {});
+    console.log(`🎉 Posted Real Member Welcome for ${member.user.tag} in #${channel.name}`);
+  }
+});
+
 client.once('clientReady', async () => {
   console.log(`🤖 Logged in as ${client.user.tag}!`);
 
@@ -486,6 +564,7 @@ client.once('clientReady', async () => {
 
   await registerSlashCommands();
   scheduleNextAutoPost();
+  scheduleNextFakeWelcome();
 });
 
 client.on('interactionCreate', async interaction => {
