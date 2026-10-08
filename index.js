@@ -472,16 +472,7 @@ async function registerSlashCommands() {
 
     new SlashCommandBuilder()
       .setName('welcometest')
-      .setDescription('Test the Real or Fake Welcome Join Embed')
-      .addStringOption(option =>
-        option.setName('type')
-          .setDescription('Choose real welcome or fake join test')
-          .setRequired(false)
-          .addChoices(
-            { name: 'Fake Join (<@14460...>)', value: 'fake' },
-            { name: 'Real Member Welcome', value: 'real' }
-          )
-      )
+      .setDescription('Directly trigger an instant Fake Join Embed Test in welcome channel')
       .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
   ];
 
@@ -565,7 +556,8 @@ async function triggerFakeWelcome() {
   
   const seed = Math.floor(Math.random() * 99999);
   const fakeAvatar = `https://api.dicebear.com/7.x/bottts/png?seed=${seed}`;
-  const memberCount = (guild.memberCount || 100) + Math.floor(Math.random() * 15);
+  // Highly randomized realistic member count (e.g. 320 to 4850)
+  const memberCount = Math.floor(Math.random() * (4850 - 320 + 1)) + 320;
 
   const embed = createWelcomeEmbed(fakeMention, fakeAvatar, memberCount);
   await sendViaWebhook(channel, {
@@ -669,23 +661,16 @@ client.on('interactionCreate', async interaction => {
         });
       }
       else if (commandName === 'welcometest') {
-        const type = interaction.options.getString('type') || 'fake';
-        await interaction.reply({ content: `⏳ Triggering **${type.toUpperCase()}** Welcome Test...`, flags: [MessageFlags.Ephemeral] }).catch(() => {});
+        await interaction.reply({ content: `⏳ Triggering **Fake Join Embed Test**...`, flags: [MessageFlags.Ephemeral] }).catch(() => {});
 
         const channel = findWelcomeChannel(interaction.guild);
         if (!channel) {
-          await interaction.editReply({ content: '❌ Could not find a welcome channel! Create a channel named `#welcome` or configure it.' }).catch(() => {});
+          await interaction.editReply({ content: '❌ Could not find welcome channel! Set `#welcome` channel ID.' }).catch(() => {});
           return;
         }
 
-        if (type === 'fake') {
-          await triggerFakeWelcome();
-          await interaction.editReply({ content: `✅ Posted **Fake Join Test** (<@14460...>) in ${channel}!` }).catch(() => {});
-        } else {
-          const embed = createWelcomeEmbed(interaction.user.toString(), interaction.user.displayAvatarURL(), interaction.guild.memberCount);
-          await channel.send({ content: `👋 Welcome ${interaction.user.toString()}!`, embeds: [embed] }).catch(() => {});
-          await interaction.editReply({ content: `✅ Posted **Real Member Welcome Test** in ${channel}!` }).catch(() => {});
-        }
+        await triggerFakeWelcome();
+        await interaction.editReply({ content: `✅ Posted **Fake Join Test** (<@14460...>) via Webhook in ${channel}!` }).catch(() => {});
       }
       else {
         await interaction.reply({ content: 'Use `/postnow` to post, `/panel` for products control, `/setup` for channels, or `/welcometest` to test welcome!', flags: [MessageFlags.Ephemeral] }).catch(() => {});
