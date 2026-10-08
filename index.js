@@ -360,40 +360,6 @@ function createPostWizardDurationMessage(selectedProduct) {
   return { embeds: [embed], components: [row1, row2] };
 }
 
-async function sendViaWebhook(channel, options) {
-  try {
-    const webhooks = await channel.fetchWebhooks();
-    let webhook = webhooks.find(wh => wh.owner && wh.owner.id === client.user.id);
-
-    let avatar = options.avatarURL || config.staticLogoUrl || config.logoUrl || (client.user ? client.user.displayAvatarURL() : undefined);
-    if (avatar && (avatar.includes('.gif') || !avatar.startsWith('http'))) {
-      avatar = config.staticLogoUrl || 'https://i.imgur.com/8Q9Z5bX.png';
-    }
-
-    if (!webhook) {
-      webhook = await channel.createWebhook({
-        name: `${config.brandName || 'SHIVAAY X'} Webhook`,
-        avatar: avatar
-      }).catch(() => null);
-    }
-
-    if (webhook) {
-      await webhook.send({
-        username: options.username || `${config.brandName || 'SHIVAAY X'} System`,
-        avatarURL: avatar,
-        content: options.content,
-        embeds: options.embeds,
-        components: options.components
-      });
-      return true;
-    }
-    throw new Error('Webhook unavailable');
-  } catch (err) {
-    await channel.send({ content: options.content, embeds: options.embeds, components: options.components }).catch(() => {});
-    return false;
-  }
-}
-
 async function sendSellProof(product, duration, securityStatus, customerMention = null, overrideChannelId = null) {
   const channelId = overrideChannelId || config.targetChannelId;
   if (!channelId) {
@@ -408,14 +374,9 @@ async function sendSellProof(product, duration, securityStatus, customerMention 
     const embed = createSellProofEmbed(product, duration, securityStatus, customerMention);
     const row = createButtonRow(channel.guild ? channel.guild.id : null);
 
-    await sendViaWebhook(channel, {
-      username: `${config.brandName || 'SHIVAAY X'} Billing System`,
-      avatarURL: config.logoUrl,
-      embeds: [embed],
-      components: [row]
-    });
+    await channel.send({ embeds: [embed], components: [row] });
 
-    console.log(`✅ Posted Sell Proof via Webhook: ${product} (${duration}) to #${channel.name}`);
+    console.log(`✅ Posted Sell Proof directly from Bot: ${product} (${duration}) to #${channel.name}`);
     return { success: true, product, duration };
   } catch (error) {
     console.error(`❌ Error sending sell proof to ${channelId}:`, error.message);
@@ -565,13 +526,8 @@ async function triggerFakeWelcome() {
   const memberCount = Math.floor(Math.random() * (4850 - 320 + 1)) + 320;
 
   const embed = createWelcomeEmbed(fakeMention, fakeAvatar, memberCount);
-  await sendViaWebhook(channel, {
-    username: `${config.brandName || 'SHIVAAY X'} Welcome System`,
-    avatarURL: config.logoUrl,
-    content: `👋 Welcome ${fakeMention}!`,
-    embeds: [embed]
-  });
-  console.log(`🎉 Posted Fake Welcome Join via Webhook for ${fakeMention} in #${channel.name}`);
+  await channel.send({ content: `👋 Welcome ${fakeMention}!`, embeds: [embed] }).catch(() => {});
+  console.log(`🎉 Posted Welcome Join directly from Bot for ${fakeMention} in #${channel.name}`);
 }
 
 function scheduleNextFakeWelcome() {
@@ -591,13 +547,8 @@ client.on('guildMemberAdd', async (member) => {
   const channel = findWelcomeChannel(member.guild);
   if (channel) {
     const embed = createWelcomeEmbed(member.user.toString(), member.user.displayAvatarURL(), member.guild.memberCount);
-    await sendViaWebhook(channel, {
-      username: `${config.brandName || 'SHIVAAY X'} Welcome System`,
-      avatarURL: config.logoUrl,
-      content: `👋 Welcome ${member.user.toString()}!`,
-      embeds: [embed]
-    });
-    console.log(`🎉 Posted Real Member Welcome via Webhook for ${member.user.tag} in #${channel.name}`);
+    await channel.send({ content: `👋 Welcome ${member.user.toString()}!`, embeds: [embed] }).catch(() => {});
+    console.log(`🎉 Posted Real Member Welcome directly from Bot for ${member.user.tag} in #${channel.name}`);
   }
 });
 
@@ -675,7 +626,7 @@ client.on('interactionCreate', async interaction => {
         }
 
         await triggerFakeWelcome();
-        await interaction.editReply({ content: `✅ Posted **Welcome Card** via Webhook in ${channel}!` }).catch(() => {});
+        await interaction.editReply({ content: `✅ Posted **Welcome Card** in ${channel}!` }).catch(() => {});
       }
       else {
         await interaction.reply({ content: 'Use `/postnow` to post, `/panel` for products control, `/setup` for channels, or `/welcometest` to test welcome!', flags: [MessageFlags.Ephemeral] }).catch(() => {});
