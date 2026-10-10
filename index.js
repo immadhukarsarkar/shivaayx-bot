@@ -616,6 +616,11 @@ function createFreePanelDashboardComponents() {
     .setLabel(isCodeEnabled ? '🔒 Secret Code: ON' : '🔒 Secret Code: OFF')
     .setStyle(isCodeEnabled ? ButtonStyle.Success : ButtonStyle.Secondary);
 
+  const btnUploadInfo = new ButtonBuilder()
+    .setCustomId('btn_fp_upload_info')
+    .setLabel('📥 Upload PC Files')
+    .setStyle(ButtonStyle.Secondary);
+
   const btnToggleStatus = new ButtonBuilder()
     .setCustomId('btn_fp_toggle_status')
     .setLabel(isClosed ? '🔴 Status: OFFLINE' : '🟢 Status: ONLINE')
@@ -627,7 +632,7 @@ function createFreePanelDashboardComponents() {
     .setStyle(ButtonStyle.Secondary);
 
   const row1 = new ActionRowBuilder().addComponents(btnEditMaster, btnEditUrls, btnToggleCode);
-  const row2 = new ActionRowBuilder().addComponents(btnToggleStatus, btnSend);
+  const row2 = new ActionRowBuilder().addComponents(btnUploadInfo, btnToggleStatus, btnSend);
 
   return [row1, row2];
 }
@@ -1349,6 +1354,15 @@ client.on('interactionCreate', async interaction => {
         );
 
         await interaction.showModal(modal);
+      }
+      else if (interaction.customId === 'btn_fp_upload_info') {
+        await interaction.reply({
+          content: `📥 **PC Direct File Upload Helper:**\n\n` +
+                   `⚠️ *Discord API limitation*: Discord Modals (Popup Windows) me file attach karne ka box feature nahi hota.\n\n` +
+                   `👉 PC se direct ZIP/APK/EXE upload karne ke liye chat me type karein:\n` +
+                   `\`\`\`text\n/uploadfiles loader:[attach file] apk:[attach file] emulator:[attach file]\n\`\`\``,
+          flags: [MessageFlags.Ephemeral]
+        }).catch(() => {});
       }
       else if (interaction.customId === 'btn_fp_toggle_code') {
         config.freepanel = config.freepanel || {};
