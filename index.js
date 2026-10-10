@@ -511,6 +511,14 @@ function findWelcomeChannel(guild) {
   return guild.channels.cache.find(c => c.isTextBased() && (c.name.includes('welcome') || c.name.includes('joins')));
 }
 
+async function sendWelcomeMessage(channel, userMention, embed) {
+  const msgPayload = { content: `👋 Welcome ${userMention}!`, embeds: [embed] };
+  if (config.welcomeVideoUrl && config.welcomeVideoUrl.startsWith('http')) {
+    msgPayload.files = [config.welcomeVideoUrl];
+  }
+  await channel.send(msgPayload).catch(() => {});
+}
+
 async function triggerFakeWelcome() {
   if (!client.guilds.cache.size) return;
   const guild = client.guilds.cache.get(config.allowedGuildId) || client.guilds.cache.first();
@@ -524,11 +532,10 @@ async function triggerFakeWelcome() {
   
   const seed = Math.floor(Math.random() * 99999);
   const fakeAvatar = `https://api.dicebear.com/7.x/bottts/png?seed=${seed}`;
-  // Highly randomized realistic member count (e.g. 320 to 4850)
   const memberCount = Math.floor(Math.random() * (4850 - 320 + 1)) + 320;
 
   const embed = createWelcomeEmbed(fakeMention, fakeAvatar, memberCount);
-  await channel.send({ content: `👋 Welcome ${fakeMention}!`, embeds: [embed] }).catch(() => {});
+  await sendWelcomeMessage(channel, fakeMention, embed);
   console.log(`🎉 Posted Welcome Join directly from Bot for ${fakeMention} in #${channel.name}`);
 }
 
@@ -549,7 +556,7 @@ client.on('guildMemberAdd', async (member) => {
   const channel = findWelcomeChannel(member.guild);
   if (channel) {
     const embed = createWelcomeEmbed(member.user.toString(), member.user.displayAvatarURL(), member.guild.memberCount);
-    await channel.send({ content: `👋 Welcome ${member.user.toString()}!`, embeds: [embed] }).catch(() => {});
+    await sendWelcomeMessage(channel, member.user.toString(), embed);
     console.log(`🎉 Posted Real Member Welcome directly from Bot for ${member.user.tag} in #${channel.name}`);
   }
 });
