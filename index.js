@@ -55,9 +55,19 @@ let config = {
   allowedGuildId: '795975960162730054',
   targetChannelId: '1557786131381362828',
   ticketChannelId: '1497208178319032583',
+  welcomeChannelId: '1557850023046156388',
+  rulesChannelId: '1515677702844055642',
   autoPosterEnabled: true,
   brandName: 'SHIVAAY X',
   logoUrl: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHpuc3pndmdsMGcyeWVwb3FmNXU3dnRpaGNyeGZrbzV3bGl6aXRqYiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/26tP41FH76a1YvkoU/giphy.gif',
+  staticLogoUrl: 'https://i.imgur.com/8Q9Z5bX.png',
+  keysMap: {
+    "1234": {
+      "product": "Free Fire Panel",
+      "key": "SHIVAAY-FREE-KEY-2026",
+      "link": "https://discord.com"
+    }
+  },
   productsMap: {
     'Basic Panel': true,
     'Aim Silent': true,
@@ -69,14 +79,16 @@ let config = {
     'iOS Panel': true
   },
   freepanel: {
-    name: 'SILENT MAX',
+    name: 'BASIC PANNEL',
     version: 'V3.4',
-    status: '🟢 ONLINE (100% SAFE)',
+    status: 'ONLINE (SAFE)',
+    secret_code: '1234',
+    codeEnabled: true,
+    key: 'SHIVAAY-FREE-KEY-2026',
+    loader_link: 'https://discord.com',
+    apk_link: 'https://discord.com',
+    emulator_link: 'https://discord.com',
     panel_url: 'https://discord.com',
-    apk_url: 'https://discord.com',
-    req_url: 'https://discord.com',
-    tutorial_url: 'https://youtube.com',
-    note: '⚡ Free high-performance panel for Free Fire! Enjoy playing with maximum safety.',
     banner: ''
   }
 };
@@ -148,6 +160,26 @@ function loadConfig() {
     }
   } catch (err) {
     console.error('Error loading config.json:', err);
+  }
+}
+
+async function loadRemoteConfigFromGitHub() {
+  try {
+    const res = await fetch(`https://raw.githubusercontent.com/${GITHUB_REPO}/main/config.json?t=${Date.now()}`);
+    if (res.ok) {
+      const loaded = await res.json();
+      config = { 
+        ...config, 
+        ...loaded, 
+        keysMap: { ...(config.keysMap || {}), ...(loaded.keysMap || {}) },
+        freepanel: { ...config.freepanel, ...(loaded.freepanel || {}) },
+        productsMap: { ...config.productsMap, ...(loaded.productsMap || {}) }
+      };
+      fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2), 'utf8');
+      console.log('☁️ Config successfully synced & restored from GitHub Cloud!');
+    }
+  } catch (err) {
+    console.log('⚠️ Could not fetch remote config from GitHub:', err.message);
   }
 }
 
@@ -980,6 +1012,7 @@ client.on('guildMemberAdd', async (member) => {
 
 client.once('clientReady', async () => {
   console.log(`🤖 Logged in as ${client.user.tag}!`);
+  await loadRemoteConfigFromGitHub().catch(() => {});
 
   client.user.setPresence({
     activities: [{ name: 'SHIVAAY X | /welcome | /panel', type: ActivityType.Watching }],
