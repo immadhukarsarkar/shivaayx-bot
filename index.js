@@ -21,7 +21,8 @@ const {
   PermissionFlagsBits,
   MessageFlags,
   ChannelType,
-  ActivityType
+  ActivityType,
+  AttachmentBuilder
 } = require('discord.js');
 
 // 24/7 Keep-Alive HTTP Server with Self-Ping to prevent Render free instance from sleeping
@@ -529,7 +530,12 @@ function findWelcomeChannel(guild) {
 async function sendWelcomeMessage(channel, userMention, embed) {
   const msgPayload = { content: `👋 Welcome ${userMention}!`, embeds: [embed] };
   if (config.welcomeVideoUrl && config.welcomeVideoUrl.startsWith('http')) {
-    msgPayload.files = [config.welcomeVideoUrl];
+    try {
+      const attachment = new AttachmentBuilder(config.welcomeVideoUrl);
+      msgPayload.files = [attachment];
+    } catch (err) {
+      console.error('Error attaching video:', err.message);
+    }
   }
   await channel.send(msgPayload).catch(() => {});
 }
