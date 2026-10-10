@@ -461,10 +461,9 @@ function createFreePanelEmbed(guildId) {
     version: 'V3.4',
     status: 'ONLINE (SAFE)',
     key: 'SHIVAAY-FREE-KEY-2026',
-    panel_url: 'https://discord.com',
-    apk_url: 'https://discord.com',
-    req_url: 'https://discord.com',
-    emulator_url: 'https://discord.com',
+    loader_link: 'https://discord.com',
+    apk_link: 'https://discord.com',
+    emulator_link: 'https://discord.com',
     emulator_text: 'Download Emulator Exe',
     banner: ''
   };
@@ -480,9 +479,8 @@ function createFreePanelEmbed(guildId) {
       `> ➤ **Key** : ${keyDisplay}\n\n` +
       `### 📘 Quick Downloads & Setup\n\n` +
       `Tap the interactive buttons below to download directly:\n` +
-      `- 📘 **Free Panel**\n` +
-      `- 🎮 **Free Fire APK**\n` +
-      `- 📂 **Requirements**\n\n` +
+      `- 📘 **Loader**\n` +
+      `- 🎮 **Free Fire APK**\n\n` +
       `- 🪜 **Emulator**: ${emulatorDisplay}\n\n` +
       `### 💬 Subscriber Rewards\n` +
       `Drop sub & like proof in 🔒 No Access to claim your exclusive Subscriber role.\n\n` +
@@ -512,29 +510,23 @@ function createFreePanelButtons(guildId) {
 
   const isValidUrl = (urlStr) => urlStr && typeof urlStr === 'string' && urlStr.startsWith('http');
 
-  const btnPanel = new ButtonBuilder()
-    .setLabel('Free Panel')
+  const btnLoader = new ButtonBuilder()
+    .setLabel('Loader')
     .setEmoji('📘')
     .setStyle(ButtonStyle.Link)
-    .setURL(isValidUrl(fp.panel_url) ? fp.panel_url : 'https://discord.com');
+    .setURL(isValidUrl(fp.loader_link || fp.panel_url) ? (fp.loader_link || fp.panel_url) : 'https://discord.com');
 
   const btnApk = new ButtonBuilder()
     .setLabel('Free Fire APK')
     .setEmoji('🎮')
     .setStyle(ButtonStyle.Link)
-    .setURL(isValidUrl(fp.apk_url) ? fp.apk_url : 'https://discord.com');
-
-  const btnReq = new ButtonBuilder()
-    .setLabel('Requirements')
-    .setEmoji('📂')
-    .setStyle(ButtonStyle.Link)
-    .setURL(isValidUrl(fp.req_url) ? fp.req_url : 'https://discord.com');
+    .setURL(isValidUrl(fp.apk_link) ? fp.apk_link : 'https://discord.com');
 
   const btnEmulator = new ButtonBuilder()
     .setLabel('Emulator')
     .setEmoji('🪜')
     .setStyle(ButtonStyle.Link)
-    .setURL(isValidUrl(fp.emulator_url) ? fp.emulator_url : 'https://discord.com');
+    .setURL(isValidUrl(fp.emulator_link) ? fp.emulator_link : 'https://discord.com');
 
   const btnBuy = new ButtonBuilder()
     .setLabel('Buy Paid Version')
@@ -542,7 +534,7 @@ function createFreePanelButtons(guildId) {
     .setStyle(ButtonStyle.Link)
     .setURL(ticketUrl);
 
-  return new ActionRowBuilder().addComponents(btnPanel, btnApk, btnReq, btnEmulator, btnBuy);
+  return new ActionRowBuilder().addComponents(btnLoader, btnApk, btnEmulator, btnBuy);
 }
 
 async function registerSlashCommands() {
