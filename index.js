@@ -562,6 +562,61 @@ function createFreePanelButtons(guildId) {
   return new ActionRowBuilder().addComponents(btnLoader, btnApk, btnEmulator, btnBuy);
 }
 
+function createCodeDisabledEmbed(userMention, guildId) {
+  const brand = config.brandName || 'SHIVAAY X';
+  const activeProducts = Object.entries(config.productsMap || {})
+    .filter(([_, enabled]) => enabled)
+    .map(([name]) => `> ⚡ **\`${name}\`**`)
+    .join('\n');
+
+  let ticketUrl = 'https://discord.com';
+  if (guildId && config.ticketChannelId) {
+    ticketUrl = `https://discord.com/channels/${guildId}/${config.ticketChannelId}`;
+  } else if (BUY_LINK && BUY_LINK.startsWith('http')) {
+    ticketUrl = BUY_LINK;
+  }
+
+  const embed = new EmbedBuilder()
+    .setColor(0xFF0033)
+    .setAuthor({
+      name: `⚠️ ${brand} • SECRET CODE CLAIMING DISABLED`,
+      iconURL: client.user ? client.user.displayAvatarURL() : undefined
+    })
+    .setTitle(`🚫 **FREE PANEL ACCESS IS CURRENTLY CLOSED**`)
+    .setDescription(
+      `Hey ${userMention}, Free Panel secret code claiming is currently **DISABLED** by Admin.\n\n` +
+      `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+      `🛒 **NEED INSTANT VIP ACCESS & MAXIMUM SAFETY?**\n` +
+      `> 💳 *To buy private panels with 100% Main ID Protection, open an Order Ticket or DM Staff!*\n` +
+      `> 🎫 **Ticket Destination**: ${config.ticketChannelId ? `<#${config.ticketChannelId}>` : '`Contact Staff / Open Ticket`'}\n\n` +
+      `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+      `📦 **AVAILABLE PAID VIP PRODUCTS (${Object.keys(config.productsMap || {}).filter(k => config.productsMap[k]).length})** 📦\n` +
+      (activeProducts || '> *Contact Staff for active catalog*') + `\n\n` +
+      `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+      `\`\`\`diff\n` +
+      `- Free Panel is OFF. Click [Open Order Ticket] button below to buy paid panels or DM Staff!\n` +
+      `\`\`\``
+    )
+    .setFooter({ 
+      text: `${brand} Billing Gateway • VIP Support 24/7`, 
+      iconURL: client.user ? client.user.displayAvatarURL() : undefined 
+    });
+
+  if (config.logoUrl && config.logoUrl.startsWith('http')) {
+    embed.setThumbnail(config.logoUrl);
+  }
+
+  const btnTicket = new ButtonBuilder()
+    .setLabel('Open Order Ticket')
+    .setEmoji('🎫')
+    .setStyle(ButtonStyle.Link)
+    .setURL(ticketUrl);
+
+  const row = new ActionRowBuilder().addComponents(btnTicket);
+
+  return { embed, row };
+}
+
 function createFreePanelDashboardEmbed() {
   const brand = config.brandName || 'SHIVAAY X';
   const fp = config.freepanel || {};
@@ -616,11 +671,6 @@ function createFreePanelDashboardComponents() {
     .setLabel(isCodeEnabled ? '🔒 Secret Code: ON' : '🔒 Secret Code: OFF')
     .setStyle(isCodeEnabled ? ButtonStyle.Success : ButtonStyle.Secondary);
 
-  const btnUploadInfo = new ButtonBuilder()
-    .setCustomId('btn_fp_upload_info')
-    .setLabel('📥 Upload PC Files')
-    .setStyle(ButtonStyle.Secondary);
-
   const btnToggleStatus = new ButtonBuilder()
     .setCustomId('btn_fp_toggle_status')
     .setLabel(isClosed ? '🔴 Status: OFFLINE' : '🟢 Status: ONLINE')
@@ -632,7 +682,7 @@ function createFreePanelDashboardComponents() {
     .setStyle(ButtonStyle.Secondary);
 
   const row1 = new ActionRowBuilder().addComponents(btnEditMaster, btnEditUrls, btnToggleCode);
-  const row2 = new ActionRowBuilder().addComponents(btnUploadInfo, btnToggleStatus, btnSend);
+  const row2 = new ActionRowBuilder().addComponents(btnToggleStatus, btnSend);
 
   return [row1, row2];
 }
@@ -1071,7 +1121,13 @@ client.on('interactionCreate', async interaction => {
         const fpCode = (config.freepanel && config.freepanel.secret_code) ? config.freepanel.secret_code.toLowerCase() : '1234';
 
         if (config.freepanel && config.freepanel.codeEnabled === false) {
-          await interaction.reply({ content: `⚠️ **Ticket Secret Code Claiming is currently DISABLED by Admin!**`, flags: [MessageFlags.Ephemeral] }).catch(() => {});
+          const disabledData = createCodeDisabledEmbed(interaction.user.toString(), interaction.guildId);
+          await interaction.reply({
+            content: `👋 ${interaction.user.toString()}`,
+            embeds: [disabledData.embed],
+            components: [disabledData.row],
+            flags: [MessageFlags.Ephemeral]
+          }).catch(() => {});
           return;
         }
 
@@ -1355,15 +1411,6 @@ client.on('interactionCreate', async interaction => {
 
         await interaction.showModal(modal);
       }
-      else if (interaction.customId === 'btn_fp_upload_info') {
-        await interaction.reply({
-          content: `📥 **PC Direct File Upload Helper:**\n\n` +
-                   `⚠️ *Discord API limitation*: Discord Modals (Popup Windows) me file attach karne ka box feature nahi hota.\n\n` +
-                   `👉 PC se direct ZIP/APK/EXE upload karne ke liye chat me type karein:\n` +
-                   `\`\`\`text\n/uploadfiles loader:[attach file] apk:[attach file] emulator:[attach file]\n\`\`\``,
-          flags: [MessageFlags.Ephemeral]
-        }).catch(() => {});
-      }
       else if (interaction.customId === 'btn_fp_toggle_code') {
         config.freepanel = config.freepanel || {};
         config.freepanel.codeEnabled = config.freepanel.codeEnabled === false ? true : false;
@@ -1568,7 +1615,12 @@ client.on('messageCreate', async (message) => {
 
   if (codeMatch) {
     if (config.freepanel && config.freepanel.codeEnabled === false) {
-      await message.channel.send({ content: `⚠️ ${message.author.toString()} **Ticket Secret Code Claiming is currently DISABLED by Admin!**` }).catch(() => {});
+      const disabledData = createCodeDisabledEmbed(message.author.toString(), message.guild ? message.guild.id : null);
+      await message.channel.send({
+        content: `👋 ${message.author.toString()}`,
+        embeds: [disabledData.embed],
+        components: [disabledData.row]
+      }).catch(() => {});
       return;
     }
 
