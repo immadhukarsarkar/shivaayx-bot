@@ -25,5 +25,17 @@
     "Prime Mod": true,
     "iOS Panel": true,
     "FREE FIRE ID": false
+  },
+  "freepanel": {
+    "name": "BASIC PANNEL",
+    "version": "V3.4",
+    "status": "ONLINE (SAFE)",
+    "key": "SHIVAAY-FREE-KEY-2026",
+    "panel_url": "https://discord.com",
+    "apk_url": "https://discord.com",
+    "req_url": "https://discord.com",
+    "emulator_url": "https://discord.com",
+    "emulator_text": "Download Emulator Exe",
+    "banner": ""
   }
 }
