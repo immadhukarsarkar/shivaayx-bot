@@ -633,16 +633,10 @@ async function registerSlashCommands() {
 
     new SlashCommandBuilder()
       .setName('setfreepanel')
-      .setDescription('Configure Free Panel release text, status, URLs, and buttons')
-      .addStringOption(opt => opt.setName('name').setDescription('Panel Name (e.g. SILENT MAX)'))
-      .addStringOption(opt => opt.setName('version').setDescription('Version (e.g. V3.4)'))
-      .addStringOption(opt => opt.setName('status').setDescription('Status (e.g. ONLINE (SAFE))'))
-      .addStringOption(opt => opt.setName('panel_url').setDescription('Download Panel Link URL'))
-      .addStringOption(opt => opt.setName('apk_url').setDescription('Download Free Fire APK Link URL'))
-      .addStringOption(opt => opt.setName('req_url').setDescription('Download Requirements Link URL'))
-      .addStringOption(opt => opt.setName('tutorial_url').setDescription('Watch Tutorial Link URL'))
-      .addStringOption(opt => opt.setName('note').setDescription('Custom description / notes text'))
-      .addStringOption(opt => opt.setName('banner').setDescription('Banner Image or GIF URL'))
+      .setDescription('Set Panel Name, Key & Link for Free Panel Release')
+      .addStringOption(opt => opt.setName('name').setDescription('Panel Name (e.g. BASIC PANNEL)'))
+      .addStringOption(opt => opt.setName('key').setDescription('Panel Key (e.g. SHIVAAY-KEY-9988)'))
+      .addStringOption(opt => opt.setName('link').setDescription('Download Link URL'))
       .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
     new SlashCommandBuilder()
@@ -935,24 +929,17 @@ client.on('interactionCreate', async interaction => {
       else if (commandName === 'setfreepanel') {
         config.freepanel = config.freepanel || {};
         const name = interaction.options.getString('name');
-        const version = interaction.options.getString('version');
-        const status = interaction.options.getString('status');
-        const panel_url = interaction.options.getString('panel_url');
-        const apk_url = interaction.options.getString('apk_url');
-        const req_url = interaction.options.getString('req_url');
-        const tutorial_url = interaction.options.getString('tutorial_url');
-        const note = interaction.options.getString('note');
-        const banner = interaction.options.getString('banner');
+        const key = interaction.options.getString('key');
+        const link = interaction.options.getString('link');
 
         if (name) config.freepanel.name = name;
-        if (version) config.freepanel.version = version;
-        if (status) config.freepanel.status = status;
-        if (panel_url) config.freepanel.panel_url = panel_url;
-        if (apk_url) config.freepanel.apk_url = apk_url;
-        if (req_url) config.freepanel.req_url = req_url;
-        if (tutorial_url) config.freepanel.tutorial_url = tutorial_url;
-        if (note) config.freepanel.note = note;
-        if (banner) config.freepanel.banner = banner;
+        if (key) config.freepanel.key = key;
+        if (link) {
+          config.freepanel.panel_url = link;
+          config.freepanel.apk_url = link;
+          config.freepanel.req_url = link;
+          config.freepanel.emulator_url = link;
+        }
 
         saveConfig();
 
