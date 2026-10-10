@@ -501,10 +501,7 @@ function createWelcomeEmbed(userMention, avatarUrl, memberCount = null) {
   const embed = new EmbedBuilder()
     .setColor(0x00F0FF) // Neon Cyan
     .setTitle(`⚡ WELCOME TO ${brand}`)
-    .setDescription(
-      `Hey ${userMention}, welcome to **${brand}**.\n\n` +
-      `Enjoy your stay. 🖤`
-    )
+    .setDescription(`Hey ${userMention}, welcome to **${brand}**.`)
     .setImage(gifUrl);
 
   return embed;
