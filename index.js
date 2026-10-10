@@ -1597,18 +1597,28 @@ client.on('interactionCreate', async interaction => {
 client.on('messageCreate', async (message) => {
   if (message.author.bot || !message.guild) return;
 
-  const contentLower = message.content.trim().toLowerCase();
-  config.keysMap = config.keysMap || {};
-  const fpCode = (config.freepanel && config.freepanel.secret_code) ? config.freepanel.secret_code.toLowerCase() : '1234';
+  const contentRaw = message.content || '';
+  if (!contentRaw) return;
 
+  const contentLower = contentRaw.trim().toLowerCase();
+  config.keysMap = config.keysMap || {};
+  const fpCode = (config.freepanel && config.freepanel.secret_code) ? config.freepanel.secret_code.toLowerCase().trim() : '1234';
+
+  const words = contentLower.split(/\s+/);
   let codeMatch = null;
-  if (contentLower === fpCode || config.keysMap[contentLower]) {
-    codeMatch = contentLower;
+
+  if (contentLower === fpCode || words.includes(fpCode)) {
+    codeMatch = fpCode;
   } else {
-    const parts = contentLower.split(' ');
-    if (parts.length === 2 && (parts[0] === '!claim' || parts[0] === 'claim' || parts[0] === '/claim')) {
-      if (parts[1] === fpCode || config.keysMap[parts[1]]) {
-        codeMatch = parts[1];
+    for (const w of words) {
+      const cleanW = w.replace(/[^a-z0-9_-]/gi, '').toLowerCase();
+      if (cleanW === fpCode) {
+        codeMatch = fpCode;
+        break;
+      }
+      if (config.keysMap && config.keysMap[cleanW]) {
+        codeMatch = cleanW;
+        break;
       }
     }
   }
@@ -1620,7 +1630,7 @@ client.on('messageCreate', async (message) => {
         content: `👋 ${message.author.toString()}`,
         embeds: [disabledData.embed],
         components: [disabledData.row]
-      }).catch(() => {});
+      }).catch((err) => console.error('Error sending disabled response:', err));
       return;
     }
 
@@ -1631,7 +1641,7 @@ client.on('messageCreate', async (message) => {
       content: `👋 ${message.author.toString()} **Here is your Free Panel Release & Direct Download Access! 🎉**`,
       embeds: [embed],
       components: [buttons]
-    }).catch(() => {});
+    }).catch((err) => console.error('Error sending free panel response:', err));
   }
 });
 
