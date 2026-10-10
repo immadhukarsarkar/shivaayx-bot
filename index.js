@@ -140,6 +140,7 @@ function loadConfig() {
       config = { 
         ...config, 
         ...loaded, 
+        keysMap: { ...(config.keysMap || {}), ...(loaded.keysMap || {}) },
         freepanel: { ...config.freepanel, ...(loaded.freepanel || {}) },
         productsMap: { ...config.productsMap, ...(loaded.productsMap || {}) }
       };
@@ -1241,7 +1242,6 @@ client.on('interactionCreate', async interaction => {
       else if (commandName === 'closepanel') {
         config.freepanel = config.freepanel || {};
         config.freepanel.status = 'OFFLINE (CLOSED)';
-        config.freepanel.key = '🔴 CLOSED / EXPIRED';
         saveConfig();
 
         await updateLiveFreePanelMessage(interaction.guildId);
@@ -1482,7 +1482,6 @@ client.on('interactionCreate', async interaction => {
           config.freepanel.status = 'ONLINE (SAFE)';
         } else {
           config.freepanel.status = 'OFFLINE (CLOSED)';
-          config.freepanel.key = '🔴 CLOSED / EXPIRED';
         }
 
         saveConfig();
