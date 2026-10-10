@@ -100,7 +100,8 @@ const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.GuildMembers
+    GatewayIntentBits.GuildMembers,
+    GatewayIntentBits.MessageContent
   ]
 });
 
@@ -424,6 +425,24 @@ function scheduleNextAutoPost() {
   }, randomDelayMs);
 }
 
+function createKeyDeliveryEmbed(codeData, userMention) {
+  const brand = config.brandName || 'SHIVAAY X';
+  const embed = new EmbedBuilder()
+    .setColor(0x00FF88) // Neon Green
+    .setTitle(`🎁 ${brand} PANEL ACCESS DELIVERED`)
+    .setDescription(
+      `Hey ${userMention}, here are your panel access details! 🎉\n\n` +
+      `━━━━━━━━━━━━━━━━━━━━\n\n` +
+      `📦 **Product**: **${codeData.product || 'Panel Access'}**\n` +
+      `🔑 **Access Key**: \`${codeData.key}\`\n` +
+      (codeData.link ? `📥 **Download Link**: ${codeData.link}\n` : '') +
+      `\n━━━━━━━━━━━━━━━━━━━━\n\n` +
+      `*Thank you for choosing ${brand}! Enjoy your access. 🖤*`
+    );
+
+  return embed;
+}
+
 async function registerSlashCommands() {
   const commands = [
     new SlashCommandBuilder()
@@ -459,7 +478,56 @@ async function registerSlashCommands() {
           .setDescription('Or paste a Video or GIF link URL')
           .setRequired(false)
       )
-      .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
+      .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+
+    new SlashCommandBuilder()
+      .setName('setkey')
+      .setDescription('Set or update a Reusable Panel Key for a code')
+      .addStringOption(option =>
+        option.setName('code')
+          .setDescription('Secret code users type to claim (e.g. 1234)')
+          .setRequired(true)
+      )
+      .addStringOption(option =>
+        option.setName('product')
+          .setDescription('Product / Panel Name (e.g. Free Fire Panel)')
+          .setRequired(true)
+      )
+      .addStringOption(option =>
+        option.setName('key')
+          .setDescription('The Panel Key string (e.g. SHIVAAY-KEY-9988)')
+          .setRequired(true)
+      )
+      .addStringOption(option =>
+        option.setName('link')
+          .setDescription('Optional Panel Download Link (URL)')
+          .setRequired(false)
+      )
+      .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+
+    new SlashCommandBuilder()
+      .setName('keys')
+      .setDescription('View all currently configured Redeem Codes & Panel Keys')
+      .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+
+    new SlashCommandBuilder()
+      .setName('delkey')
+      .setDescription('Delete a Redeem Code & Key configuration')
+      .addStringOption(option =>
+        option.setName('code')
+          .setDescription('Code to delete (e.g. 1234)')
+          .setRequired(true)
+      )
+      .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+
+    new SlashCommandBuilder()
+      .setName('claim')
+      .setDescription('Claim a Panel Key using a code')
+      .addStringOption(option =>
+        option.setName('code')
+          .setDescription('Type the code provided to claim your panel key (e.g. 1234)')
+          .setRequired(true)
+      )
   ];
 
   const rest = new REST({ version: '10' }).setToken(TOKEN);
@@ -674,8 +742,77 @@ client.on('interactionCreate', async interaction => {
           flags: [MessageFlags.Ephemeral]
         }).catch(() => {});
       }
+      else if (commandName === 'setkey') {
+        const code = interaction.options.getString('code').trim().toLowerCase();
+        const product = interaction.options.getString('product');
+        const key = interaction.options.getString('key');
+        const link = interaction.options.getString('link') || '';
+
+        config.keysMap = config.keysMap || {};
+        config.keysMap[code] = { product, key, link };
+        saveConfig();
+
+        await interaction.reply({
+          content: `✅ **REDEEM CODE SAVED PERMANENTLY!** 🎉\n\n` +
+                   `📌 **Code**: \`${code}\`\n` +
+                   `📦 **Product**: **${product}**\n` +
+                   `🔑 **Key**: \`${key}\`\n` +
+                   (link ? `📥 **Link**: ${link}\n` : '') +
+                   `\n*Users can now type /claim code:${code} or type ${code} in tickets to claim this key!*`,
+          flags: [MessageFlags.Ephemeral]
+        }).catch(() => {});
+      }
+
+      else if (commandName === 'keys') {
+        config.keysMap = config.keysMap || {};
+        const entries = Object.entries(config.keysMap);
+
+        if (entries.length === 0) {
+          await interaction.reply({ content: 'ℹ️ No redeem codes/keys configured yet! Use `/setkey` to add one.', flags: [MessageFlags.Ephemeral] }).catch(() => {});
+          return;
+        }
+
+        const lines = entries.map(([code, item]) => {
+          return `🔹 Code: \`${code}\` ➔ **${item.product}** | Key: \`${item.key}\` ${item.link ? `| [Download Link](${item.link})` : ''}`;
+        }).join('\n\n');
+
+        const embed = new EmbedBuilder()
+          .setColor(0x5865F2)
+          .setTitle(`🔑 ${config.brandName || 'SHIVAAY X'} Configured Panel Keys (${entries.length})`)
+          .setDescription(lines)
+          .setFooter({ text: 'Use /setkey to add/update, or /delkey to delete codes.' });
+
+        await interaction.reply({ embeds: [embed], flags: [MessageFlags.Ephemeral] }).catch(() => {});
+      }
+
+      else if (commandName === 'delkey') {
+        const code = interaction.options.getString('code').trim().toLowerCase();
+        config.keysMap = config.keysMap || {};
+
+        if (config.keysMap[code]) {
+          delete config.keysMap[code];
+          saveConfig();
+          await interaction.reply({ content: `✅ Code \`${code}\` deleted permanently!`, flags: [MessageFlags.Ephemeral] }).catch(() => {});
+        } else {
+          await interaction.reply({ content: `❌ Code \`${code}\` not found in config!`, flags: [MessageFlags.Ephemeral] }).catch(() => {});
+        }
+      }
+
+      else if (commandName === 'claim') {
+        const code = interaction.options.getString('code').trim().toLowerCase();
+        config.keysMap = config.keysMap || {};
+
+        const codeData = config.keysMap[code];
+        if (!codeData) {
+          await interaction.reply({ content: `❌ **Invalid or Expired Code!** Please check the code or contact staff in ticket.`, flags: [MessageFlags.Ephemeral] }).catch(() => {});
+          return;
+        }
+
+        const embed = createKeyDeliveryEmbed(codeData, interaction.user.toString());
+        await interaction.reply({ embeds: [embed] }).catch(() => {});
+      }
       else {
-        await interaction.reply({ content: 'Use `/postnow` to post, `/panel` for products, `/setup` for channels, `/welcome` for welcome card, or `/setvideo` to upload video!', flags: [MessageFlags.Ephemeral] }).catch(() => {});
+        await interaction.reply({ content: 'Use `/postnow` to post, `/panel` for products, `/setup` for channels, `/welcome` for welcome card, `/setkey` to add keys, or `/claim` to redeem!', flags: [MessageFlags.Ephemeral] }).catch(() => {});
       }
     }
 
@@ -815,6 +952,31 @@ client.on('interactionCreate', async interaction => {
     if (!interaction.replied && !interaction.deferred) {
       await interaction.reply({ content: '❌ An error occurred while executing command.', flags: [MessageFlags.Ephemeral] }).catch(() => {});
     }
+  }
+});
+
+client.on('messageCreate', async (message) => {
+  if (message.author.bot || !message.guild) return;
+
+  const contentLower = message.content.trim().toLowerCase();
+  config.keysMap = config.keysMap || {};
+
+  let codeMatch = null;
+  if (config.keysMap[contentLower]) {
+    codeMatch = contentLower;
+  } else {
+    const parts = contentLower.split(' ');
+    if (parts.length === 2 && (parts[0] === '!claim' || parts[0] === 'claim' || parts[0] === '/claim')) {
+      if (config.keysMap[parts[1]]) {
+        codeMatch = parts[1];
+      }
+    }
+  }
+
+  if (codeMatch) {
+    const codeData = config.keysMap[codeMatch];
+    const embed = createKeyDeliveryEmbed(codeData, message.author.toString());
+    await message.channel.send({ content: `👋 ${message.author.toString()}`, embeds: [embed] }).catch(() => {});
   }
 });
 
