@@ -481,7 +481,6 @@ function createFreePanelEmbed(guildId) {
       `Tap the interactive buttons below to download directly:\n` +
       `- 📘 **Loader**\n` +
       `- 🎮 **Free Fire APK**\n\n` +
-      `- 🪜 **Emulator**: ${emulatorDisplay}\n\n` +
       `### 💬 Subscriber Rewards\n` +
       `Drop sub & like proof in 🔒 No Access to claim your exclusive Subscriber role.\n\n` +
       `### 🛒 Need Maximum Safety & UID Bypass?\n` +
