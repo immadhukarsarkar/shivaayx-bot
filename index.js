@@ -694,7 +694,7 @@ async function registerSlashCommands() {
       .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
     new SlashCommandBuilder()
-      .setName('panel')
+      .setName('sell')
       .setDescription('🎛️ Open Sell-Proof Loader (Products Toggle, Auto-Poster, Post Now)')
       .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
@@ -915,7 +915,7 @@ client.on('interactionCreate', async interaction => {
         const wizard = createPostWizardProductMessage();
         await interaction.reply({ ...wizard, flags: [MessageFlags.Ephemeral] }).catch(() => {});
       }
-      else if (commandName === 'panel') {
+      else if (commandName === 'sell' || commandName === 'panel') {
         const embed = createDashboardEmbed();
         const components = createDashboardComponents();
         await interaction.reply({ embeds: [embed], components: components }).catch(async () => {
