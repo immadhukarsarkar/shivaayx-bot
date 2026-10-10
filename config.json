@@ -2,19 +2,9 @@
   "allowedGuildId": "795975960162730054",
   "targetChannelId": "1557786131381362828",
   "ticketChannelId": "1497208178319032583",
-  "welcomeChannelId": "1557850023046156388",
-  "rulesChannelId": "1515677702844055642",
   "autoPosterEnabled": true,
   "brandName": "SHIVAAY X",
   "logoUrl": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHpuc3pndmdsMGcyeWVwb3FmNXU3dnRpaGNyeGZrbzV3bGl6aXRqYiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/26tP41FH76a1YvkoU/giphy.gif",
-  "staticLogoUrl": "https://i.imgur.com/8Q9Z5bX.png",
-  "keysMap": {
-    "1234": {
-      "product": "Free Fire Panel",
-      "key": "SHIVAAY-FREE-PANEL-KEY-9988",
-      "link": "https://discord.com"
-    }
-  },
   "productsMap": {
     "Basic Panel": true,
     "Aim Silent": true,
@@ -30,13 +20,27 @@
     "name": "BASIC PANNEL",
     "version": "V3.4",
     "status": "ONLINE (SAFE)",
+    "panel_url": "https://discord.com",
+    "apk_url": "https://discord.com",
+    "req_url": "https://discord.com",
+    "tutorial_url": "https://youtube.com",
+    "note": "⚡ Free high-performance panel for Free Fire! Enjoy playing with maximum safety.",
+    "banner": "",
     "secret_code": "1234",
     "codeEnabled": true,
     "key": "SHIVAAY-FREE-KEY-2026",
-    "loader_link": "https://discord.com",
-    "apk_link": "https://discord.com",
-    "emulator_link": "https://discord.com",
-    "panel_url": "https://discord.com",
-    "banner": ""
+    "loader_link": "https://cdn.discordapp.com/ephemeral-attachments/1558542354279833715/1558582620646936686/HYPER_X_11.zip?ex=6acbf6ad&is=6acaa52d&hm=bac792e31b9b5d6236d701beac09fb4c1bd18da615965db9418e8c816b0f4e92&",
+    "apk_link": "https://cdn.discordapp.com/ephemeral-attachments/1558542354279833715/1558582630788767804/FreeFire_OB55_1.132.1.xapk?ex=6acbf6b0&is=6acaa530&hm=4615aad47b39a3e7a3eb9ff84d171fc8b93ef2948c181a955a2ef709a7a16e00&",
+    "emulator_link": "https://cdn.discordapp.com/ephemeral-attachments/1558542354279833715/1558582653299597462/MSI_EMULATOR_5.22.75.6322.exe?ex=6acbf6b5&is=6acaa535&hm=55e704fcbe8488967a84e41bec274d65d980b3363c8808a1ef55aaba3cf5dad0&"
+  },
+  "welcomeChannelId": "1557850023046156388",
+  "rulesChannelId": "1515677702844055642",
+  "staticLogoUrl": "https://i.imgur.com/8Q9Z5bX.png",
+  "keysMap": {
+    "1234": {
+      "product": "Free Fire Panel",
+      "key": "SHIVAAY-FREE-PANEL-KEY-9988",
+      "link": "https://discord.com"
+    }
   }
 }
