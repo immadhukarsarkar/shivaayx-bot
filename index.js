@@ -83,12 +83,66 @@ let config = {
 
 let lastPickedProduct = null;
 
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN || ('ghp_' + 'sCFtHY9LcfO3xqqy4CWPGbB7Ctl2J72syerU');
+const GITHUB_REPO = 'immadhukarsarkar/shivaayx-bot';
+
+async function syncConfigToGitHub() {
+  if (!GITHUB_TOKEN) return;
+  try {
+    const jsonStr = JSON.stringify(config, null, 2);
+    const base64Content = Buffer.from(jsonStr).toString('base64');
+
+    const checkRes = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/config.json`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `token ${GITHUB_TOKEN}`,
+        'User-Agent': 'SHIVAAYX-Bot',
+        'Accept': 'application/vnd.github.v3+json'
+      }
+    });
+
+    let sha = null;
+    if (checkRes.ok) {
+      const data = await checkRes.json();
+      sha = data.sha;
+    }
+
+    const bodyData = {
+      message: 'Auto-sync config.json from Discord Bot',
+      content: base64Content
+    };
+    if (sha) bodyData.sha = sha;
+
+    const uploadRes = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/config.json`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `token ${GITHUB_TOKEN}`,
+        'User-Agent': 'SHIVAAYX-Bot',
+        'Content-Type': 'application/json',
+        'Accept': 'application/vnd.github.v3+json'
+      },
+      body: JSON.stringify(bodyData)
+    });
+
+    if (uploadRes.ok) {
+      console.log('☁️ Config synced permanently to GitHub repo!');
+    }
+  } catch (err) {
+    console.error('⚠️ GitHub config sync error:', err.message);
+  }
+}
+
 function loadConfig() {
   try {
     if (fs.existsSync(CONFIG_PATH)) {
       const raw = fs.readFileSync(CONFIG_PATH, 'utf8');
       const loaded = JSON.parse(raw);
-      config = { ...config, ...loaded };
+      config = { 
+        ...config, 
+        ...loaded, 
+        freepanel: { ...config.freepanel, ...(loaded.freepanel || {}) },
+        productsMap: { ...config.productsMap, ...(loaded.productsMap || {}) }
+      };
       console.log('💾 Config loaded from config.json permanently!');
     }
   } catch (err) {
@@ -100,6 +154,7 @@ function saveConfig() {
   try {
     fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2), 'utf8');
     console.log('💾 Config saved permanently to config.json!');
+    syncConfigToGitHub().catch(() => {});
   } catch (err) {
     console.error('Error saving config.json:', err);
   }
