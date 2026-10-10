@@ -566,19 +566,28 @@ function createFreePanelDashboardEmbed() {
   const isClosed = fp.status && (fp.status.includes('OFFLINE') || fp.status.includes('CLOSED'));
   const liveChannelText = config.freepanelChannelId ? `<#${config.freepanelChannelId}>` : '`Not Posted Yet`';
 
+  config.keysMap = config.keysMap || {};
+  const keysEntries = Object.entries(config.keysMap);
+  const keysListStr = keysEntries.map(([code, item]) => {
+    return `🔹 Code: \`${code}\` ➔ **${item.product}** | Key: \`${item.key}\``;
+  }).join('\n') || '*No ticket redeem codes added yet*';
+
   const embed = new EmbedBuilder()
     .setColor(isClosed ? 0xFF0033 : 0x00FF88)
-    .setTitle(`🎛️ ${brand} • Free Panel Control Panel`)
+    .setTitle(`🎛️ ${brand} • Free Panel & Ticket Keys Loader`)
     .setDescription(
-      `Manage your Free Panel Release directly using the interactive controls below:\n\n` +
+      `Manage your Free Panel Release & Ticket Codes directly using buttons below:\n\n` +
       `📦 **Panel Name**: \`${fp.name || 'BASIC PANNEL'}\`\n` +
       `⚡ **Version**: \`${fp.version || 'V3.4'}\`\n` +
       `🛡️ **Status**: ${isClosed ? '🔴 **OFFLINE (CLOSED)**' : '🟢 **ONLINE (SAFE)**'}\n` +
-      `🔑 **Current Key**: \`${fp.key || 'SHIVAAY-FREE-KEY-2026'}\`\n` +
+      `🔑 **Current Release Key**: \`${fp.key || 'SHIVAAY-FREE-KEY-2026'}\`\n` +
       `📥 **Download Link**: ${fp.loader_link ? `[Click to Test](${fp.loader_link})` : '`Default`'}\n` +
       `📌 **Live Posted Channel**: ${liveChannelText}\n\n` +
       `━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
-      `*Click buttons below to edit details via popup box, toggle online/offline, or post release!*`
+      `🔑 **Active Ticket Claim Codes (${keysEntries.length})**:\n` +
+      `${keysListStr}\n\n` +
+      `━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+      `*Click buttons below to edit panel/key, add ticket codes via popup form, toggle online/offline, or post release!*`
     )
     .setFooter({ text: `${brand} Free Panel Loader • 1-Click Management`, iconURL: client.user ? client.user.displayAvatarURL() : undefined });
 
@@ -595,12 +604,17 @@ function createFreePanelDashboardComponents() {
 
   const btnEdit = new ButtonBuilder()
     .setCustomId('btn_fp_edit_modal')
-    .setLabel('✏️ Edit Details & Key')
+    .setLabel('✏️ Edit Panel & Key')
     .setStyle(ButtonStyle.Primary);
+
+  const btnAddCode = new ButtonBuilder()
+    .setCustomId('btn_add_code_modal')
+    .setLabel('🔑 Add Ticket Code')
+    .setStyle(ButtonStyle.Success);
 
   const btnToggleStatus = new ButtonBuilder()
     .setCustomId('btn_fp_toggle_status')
-    .setLabel(isClosed ? '🔴 Status: OFFLINE (Click to Open)' : '🟢 Status: ONLINE (Click to Close)')
+    .setLabel(isClosed ? '🔴 Status: OFFLINE (Open)' : '🟢 Status: ONLINE (Close)')
     .setStyle(isClosed ? ButtonStyle.Danger : ButtonStyle.Success);
 
   const btnSend = new ButtonBuilder()
@@ -608,7 +622,10 @@ function createFreePanelDashboardComponents() {
     .setLabel('🚀 Post / Send Release')
     .setStyle(ButtonStyle.Secondary);
 
-  return [new ActionRowBuilder().addComponents(btnEdit, btnToggleStatus, btnSend)];
+  const row1 = new ActionRowBuilder().addComponents(btnEdit, btnAddCode);
+  const row2 = new ActionRowBuilder().addComponents(btnToggleStatus, btnSend);
+
+  return [row1, row2];
 }
 
 function createWelcomeDashboardEmbed() {
@@ -685,7 +702,7 @@ async function registerSlashCommands() {
   const commands = [
     new SlashCommandBuilder()
       .setName('freepanel')
-      .setDescription('🎛️ Open Free Panel Loader (Edit Details, Key, Links, Toggle Online/Offline)')
+      .setDescription('🎛️ Open Free Panel & Ticket Keys Loader (Edit Details, Keys, Online/Offline Toggle)')
       .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
     new SlashCommandBuilder()
@@ -696,46 +713,6 @@ async function registerSlashCommands() {
     new SlashCommandBuilder()
       .setName('sell')
       .setDescription('🎛️ Open Sell-Proof Loader (Products Toggle, Auto-Poster, Post Now)')
-      .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
-
-    new SlashCommandBuilder()
-      .setName('setkey')
-      .setDescription('🔑 Set or update a Reusable Panel Key for a code')
-      .addStringOption(option =>
-        option.setName('code')
-          .setDescription('Secret code users type to claim (e.g. 1234)')
-          .setRequired(true)
-      )
-      .addStringOption(option =>
-        option.setName('product')
-          .setDescription('Product / Panel Name (e.g. Free Fire Panel)')
-          .setRequired(true)
-      )
-      .addStringOption(option =>
-        option.setName('key')
-          .setDescription('The Panel Key string (e.g. SHIVAAY-KEY-9988)')
-          .setRequired(true)
-      )
-      .addStringOption(option =>
-        option.setName('link')
-          .setDescription('Optional Panel Download Link (URL)')
-          .setRequired(false)
-      )
-      .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
-
-    new SlashCommandBuilder()
-      .setName('keys')
-      .setDescription('🔑 View all currently configured Redeem Codes & Panel Keys')
-      .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
-
-    new SlashCommandBuilder()
-      .setName('delkey')
-      .setDescription('❌ Delete a Redeem Code & Key configuration')
-      .addStringOption(option =>
-        option.setName('code')
-          .setDescription('Code to delete (e.g. 1234)')
-          .setRequired(true)
-      )
       .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
     new SlashCommandBuilder()
@@ -1314,6 +1291,48 @@ client.on('interactionCreate', async interaction => {
         await triggerFakeWelcome();
         await interaction.followUp({ content: `🧪 **Test Welcome Card sent directly to welcome channel!**`, flags: [MessageFlags.Ephemeral] });
       }
+      else if (interaction.customId === 'btn_add_code_modal') {
+        const modal = new ModalBuilder()
+          .setCustomId('modal_add_code')
+          .setTitle('🔑 Add Ticket Redeem Code');
+
+        const codeInput = new TextInputBuilder()
+          .setCustomId('code_val_input')
+          .setLabel('Secret Code (e.g. 1234)')
+          .setStyle(TextInputStyle.Short)
+          .setPlaceholder('1234')
+          .setRequired(true);
+
+        const prodInput = new TextInputBuilder()
+          .setCustomId('code_prod_input')
+          .setLabel('Product / Panel Name')
+          .setStyle(TextInputStyle.Short)
+          .setValue('Free Fire Panel')
+          .setRequired(true);
+
+        const keyInput = new TextInputBuilder()
+          .setCustomId('code_key_input')
+          .setLabel('Panel Key String')
+          .setStyle(TextInputStyle.Short)
+          .setPlaceholder('SHIVAAY-KEY-9988')
+          .setRequired(true);
+
+        const linkInput = new TextInputBuilder()
+          .setCustomId('code_link_input')
+          .setLabel('Optional Download Link')
+          .setStyle(TextInputStyle.Short)
+          .setPlaceholder('https://...')
+          .setRequired(false);
+
+        modal.addComponents(
+          new ActionRowBuilder().addComponents(codeInput),
+          new ActionRowBuilder().addComponents(prodInput),
+          new ActionRowBuilder().addComponents(keyInput),
+          new ActionRowBuilder().addComponents(linkInput)
+        );
+
+        await interaction.showModal(modal);
+      }
     }
 
     else if (interaction.isModalSubmit()) {
@@ -1361,6 +1380,21 @@ client.on('interactionCreate', async interaction => {
 
         await interaction.reply({
           content: `✅ **FREE PANEL DETAILS UPDATED SUCCESSFULLY!** 🎉\nLive release post updated automatically!`,
+          flags: [MessageFlags.Ephemeral]
+        });
+      }
+      else if (interaction.customId === 'modal_add_code') {
+        const code = interaction.fields.getTextInputValue('code_val_input').trim().toLowerCase();
+        const product = interaction.fields.getTextInputValue('code_prod_input').trim();
+        const key = interaction.fields.getTextInputValue('code_key_input').trim();
+        const link = interaction.fields.getTextInputValue('code_link_input').trim();
+
+        config.keysMap = config.keysMap || {};
+        config.keysMap[code] = { product, key, link };
+        saveConfig();
+
+        await interaction.reply({
+          content: `✅ **TICKET REDEEM CODE \`${code}\` ADDED SUCCESSFULLY!** 🎉\n📦 **Product**: **${product}**\n🔑 **Key**: \`${key}\`\n\n*Members can now type \`/claim code:${code}\` or type \`${code}\` in tickets to claim key!*`,
           flags: [MessageFlags.Ephemeral]
         });
       }
