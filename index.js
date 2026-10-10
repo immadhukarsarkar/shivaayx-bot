@@ -67,6 +67,17 @@ let config = {
     'Drip Client': true,
     'Prime Mod': true,
     'iOS Panel': true
+  },
+  freepanel: {
+    name: 'SILENT MAX',
+    version: 'V3.4',
+    status: '🟢 ONLINE (100% SAFE)',
+    panel_url: 'https://discord.com',
+    apk_url: 'https://discord.com',
+    req_url: 'https://discord.com',
+    tutorial_url: 'https://youtube.com',
+    note: '⚡ Free high-performance panel for Free Fire! Enjoy playing with maximum safety.',
+    banner: ''
   }
 };
 
@@ -443,6 +454,85 @@ function createKeyDeliveryEmbed(codeData, userMention) {
   return embed;
 }
 
+function createFreePanelEmbed(guildId) {
+  const brand = config.brandName || 'SHIVAAY X';
+  const fp = config.freepanel || {
+    name: 'SILENT MAX',
+    version: 'V3.4',
+    status: '🟢 ONLINE (100% SAFE)',
+    panel_url: 'https://discord.com',
+    apk_url: 'https://discord.com',
+    req_url: 'https://discord.com',
+    tutorial_url: 'https://youtube.com',
+    note: '⚡ Free high-performance panel for Free Fire! Enjoy playing with maximum safety.',
+    banner: ''
+  };
+
+  const embed = new EmbedBuilder()
+    .setColor(0x00F0FF)
+    .setAuthor({
+      name: `${brand} • FREE PANEL RELEASE`,
+      iconURL: client.user ? client.user.displayAvatarURL() : undefined
+    })
+    .setTitle(`🔥 ${fp.name} [${fp.version}]`)
+    .setDescription(
+      `🛡️ **Status**: \`${fp.status}\`\n\n` +
+      `━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+      `📌 **RELEASE DETAILS & NOTES**\n` +
+      `${fp.note || '⚡ Free high-performance panel for Free Fire! Enjoy playing with maximum safety.'}\n` +
+      `━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+      `👇 **GET YOUR DOWNLOADS & TUTORIAL BELOW** 👇`
+    )
+    .setFooter({ text: `${brand} • Free Panel System`, iconURL: client.user ? client.user.displayAvatarURL() : undefined });
+
+  if (fp.banner && fp.banner.startsWith('http')) {
+    embed.setImage(fp.banner);
+  } else if (config.logoUrl && config.logoUrl.startsWith('http')) {
+    embed.setImage(config.logoUrl);
+  }
+
+  return embed;
+}
+
+function createFreePanelButtons(guildId) {
+  const fp = config.freepanel || {};
+  let ticketUrl = 'https://discord.com';
+  if (guildId && config.ticketChannelId) {
+    ticketUrl = `https://discord.com/channels/${guildId}/${config.ticketChannelId}`;
+  } else if (BUY_LINK && BUY_LINK.startsWith('http')) {
+    ticketUrl = BUY_LINK;
+  }
+
+  const isValidUrl = (urlStr) => urlStr && typeof urlStr === 'string' && urlStr.startsWith('http');
+
+  const btnPanel = new ButtonBuilder()
+    .setLabel('Download Panel')
+    .setStyle(ButtonStyle.Link)
+    .setURL(isValidUrl(fp.panel_url) ? fp.panel_url : 'https://discord.com');
+
+  const btnApk = new ButtonBuilder()
+    .setLabel('Download Free Fire')
+    .setStyle(ButtonStyle.Link)
+    .setURL(isValidUrl(fp.apk_url) ? fp.apk_url : 'https://discord.com');
+
+  const btnReq = new ButtonBuilder()
+    .setLabel('Download Requirements')
+    .setStyle(ButtonStyle.Link)
+    .setURL(isValidUrl(fp.req_url) ? fp.req_url : 'https://discord.com');
+
+  const btnTutorial = new ButtonBuilder()
+    .setLabel('Watch Tutorial')
+    .setStyle(ButtonStyle.Link)
+    .setURL(isValidUrl(fp.tutorial_url) ? fp.tutorial_url : 'https://youtube.com');
+
+  const btnBuy = new ButtonBuilder()
+    .setLabel('Buy Paid Version')
+    .setStyle(ButtonStyle.Link)
+    .setURL(ticketUrl);
+
+  return new ActionRowBuilder().addComponents(btnPanel, btnApk, btnReq, btnTutorial, btnBuy);
+}
+
 async function registerSlashCommands() {
   const commands = [
     new SlashCommandBuilder()
@@ -527,7 +617,26 @@ async function registerSlashCommands() {
         option.setName('code')
           .setDescription('Type the code provided to claim your panel key (e.g. 1234)')
           .setRequired(true)
-      )
+      ),
+
+    new SlashCommandBuilder()
+      .setName('setfreepanel')
+      .setDescription('Configure Free Panel release text, status, URLs, and buttons')
+      .addStringOption(opt => opt.setName('name').setDescription('Panel Name (e.g. SILENT MAX)'))
+      .addStringOption(opt => opt.setName('version').setDescription('Version (e.g. V3.4)'))
+      .addStringOption(opt => opt.setName('status').setDescription('Status (e.g. ONLINE (SAFE))'))
+      .addStringOption(opt => opt.setName('panel_url').setDescription('Download Panel Link URL'))
+      .addStringOption(opt => opt.setName('apk_url').setDescription('Download Free Fire APK Link URL'))
+      .addStringOption(opt => opt.setName('req_url').setDescription('Download Requirements Link URL'))
+      .addStringOption(opt => opt.setName('tutorial_url').setDescription('Watch Tutorial Link URL'))
+      .addStringOption(opt => opt.setName('note').setDescription('Custom description / notes text'))
+      .addStringOption(opt => opt.setName('banner').setDescription('Banner Image or GIF URL'))
+      .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+
+    new SlashCommandBuilder()
+      .setName('sendfreepanel')
+      .setDescription('Send the Free Panel Release Embed with 5 Download & Tutorial buttons')
+      .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
   ];
 
   const rest = new REST({ version: '10' }).setToken(TOKEN);
@@ -811,8 +920,49 @@ client.on('interactionCreate', async interaction => {
         const embed = createKeyDeliveryEmbed(codeData, interaction.user.toString());
         await interaction.reply({ embeds: [embed] }).catch(() => {});
       }
+      else if (commandName === 'setfreepanel') {
+        config.freepanel = config.freepanel || {};
+        const name = interaction.options.getString('name');
+        const version = interaction.options.getString('version');
+        const status = interaction.options.getString('status');
+        const panel_url = interaction.options.getString('panel_url');
+        const apk_url = interaction.options.getString('apk_url');
+        const req_url = interaction.options.getString('req_url');
+        const tutorial_url = interaction.options.getString('tutorial_url');
+        const note = interaction.options.getString('note');
+        const banner = interaction.options.getString('banner');
+
+        if (name) config.freepanel.name = name;
+        if (version) config.freepanel.version = version;
+        if (status) config.freepanel.status = status;
+        if (panel_url) config.freepanel.panel_url = panel_url;
+        if (apk_url) config.freepanel.apk_url = apk_url;
+        if (req_url) config.freepanel.req_url = req_url;
+        if (tutorial_url) config.freepanel.tutorial_url = tutorial_url;
+        if (note) config.freepanel.note = note;
+        if (banner) config.freepanel.banner = banner;
+
+        saveConfig();
+
+        const embed = createFreePanelEmbed(interaction.guildId);
+        const buttons = createFreePanelButtons(interaction.guildId);
+
+        await interaction.reply({
+          content: `✅ **FREE PANEL CONFIGURATION UPDATED!** 🎉\nHere is how your release post will look:`,
+          embeds: [embed],
+          components: [buttons],
+          flags: [MessageFlags.Ephemeral]
+        }).catch(() => {});
+      }
+      else if (commandName === 'sendfreepanel') {
+        const embed = createFreePanelEmbed(interaction.guildId);
+        const buttons = createFreePanelButtons(interaction.guildId);
+
+        await interaction.channel.send({ embeds: [embed], components: [buttons] });
+        await interaction.reply({ content: `✅ Posted **Free Panel Release Card** in ${interaction.channel}!`, flags: [MessageFlags.Ephemeral] }).catch(() => {});
+      }
       else {
-        await interaction.reply({ content: 'Use `/postnow` to post, `/panel` for products, `/setup` for channels, `/welcome` for welcome card, `/setkey` to add keys, or `/claim` to redeem!', flags: [MessageFlags.Ephemeral] }).catch(() => {});
+        await interaction.reply({ content: 'Use `/postnow`, `/panel`, `/setup`, `/welcome`, `/setkey`, `/setfreepanel`, or `/sendfreepanel`!', flags: [MessageFlags.Ephemeral] }).catch(() => {});
       }
     }
 
