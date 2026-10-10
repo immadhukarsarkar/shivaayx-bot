@@ -996,16 +996,26 @@ client.on('interactionCreate', async interaction => {
 
       else if (commandName === 'claim') {
         const code = interaction.options.getString('code').trim().toLowerCase();
-        config.keysMap = config.keysMap || {};
+        const fpCode = (config.freepanel && config.freepanel.secret_code) ? config.freepanel.secret_code.toLowerCase() : '1234';
 
-        const codeData = config.keysMap[code];
-        if (!codeData) {
+        if (config.freepanel && config.freepanel.codeEnabled === false) {
+          await interaction.reply({ content: `⚠️ **Ticket Secret Code Claiming is currently DISABLED by Admin!**`, flags: [MessageFlags.Ephemeral] }).catch(() => {});
+          return;
+        }
+
+        if (code !== fpCode && !config.keysMap[code]) {
           await interaction.reply({ content: `❌ **Invalid or Expired Code!** Please check the code or contact staff in ticket.`, flags: [MessageFlags.Ephemeral] }).catch(() => {});
           return;
         }
 
-        const embed = createKeyDeliveryEmbed(codeData, interaction.user.toString());
-        await interaction.reply({ embeds: [embed] }).catch(() => {});
+        const embed = createFreePanelEmbed(interaction.guildId);
+        const buttons = createFreePanelButtons(interaction.guildId);
+
+        await interaction.reply({
+          content: `👋 ${interaction.user.toString()} **Here is your Free Panel Release & Direct Download Access! 🎉**`,
+          embeds: [embed],
+          components: [buttons]
+        }).catch(() => {});
       }
       else if (commandName === 'setfreepanel') {
         config.freepanel = config.freepanel || {};
@@ -1414,14 +1424,15 @@ client.on('messageCreate', async (message) => {
 
   const contentLower = message.content.trim().toLowerCase();
   config.keysMap = config.keysMap || {};
+  const fpCode = (config.freepanel && config.freepanel.secret_code) ? config.freepanel.secret_code.toLowerCase() : '1234';
 
   let codeMatch = null;
-  if (config.keysMap[contentLower]) {
+  if (contentLower === fpCode || config.keysMap[contentLower]) {
     codeMatch = contentLower;
   } else {
     const parts = contentLower.split(' ');
     if (parts.length === 2 && (parts[0] === '!claim' || parts[0] === 'claim' || parts[0] === '/claim')) {
-      if (config.keysMap[parts[1]]) {
+      if (parts[1] === fpCode || config.keysMap[parts[1]]) {
         codeMatch = parts[1];
       }
     }
@@ -1433,9 +1444,14 @@ client.on('messageCreate', async (message) => {
       return;
     }
 
-    const codeData = config.keysMap[codeMatch];
-    const embed = createKeyDeliveryEmbed(codeData, message.author.toString());
-    await message.channel.send({ content: `👋 ${message.author.toString()}`, embeds: [embed] }).catch(() => {});
+    const embed = createFreePanelEmbed(message.guild ? message.guild.id : null);
+    const buttons = createFreePanelButtons(message.guild ? message.guild.id : null);
+
+    await message.channel.send({
+      content: `👋 ${message.author.toString()} **Here is your Free Panel Release & Direct Download Access! 🎉**`,
+      embeds: [embed],
+      components: [buttons]
+    }).catch(() => {});
   }
 });
 
