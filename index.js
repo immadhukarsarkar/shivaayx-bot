@@ -464,30 +464,41 @@ function createFreePanelEmbed(guildId) {
     loader_link: 'https://discord.com',
     apk_link: 'https://discord.com',
     emulator_link: 'https://discord.com',
-    emulator_text: 'Download Emulator Exe',
     banner: ''
   };
 
-  const keyDisplay = fp.key ? `\`${fp.key}\`` : '`FREE-KEY-SET-VIA-DISCORD`';
-  const emulatorDisplay = fp.emulator_text ? fp.emulator_text : 'Download Emulator Exe';
+  const keyDisplay = fp.key ? `\`${fp.key}\`` : '`SHIVAAY-FREE-KEY-2026`';
 
   const embed = new EmbedBuilder()
-    .setColor(0xE74C3C)
-    .setTitle(`🟥 **${brand} - FREE PANEL RELEASE**`)
+    .setColor(0xFF0055)
+    .setAuthor({
+      name: `⚡ ${brand} • OFFICIAL FREE RELEASE ⚡`,
+      iconURL: client.user ? client.user.displayAvatarURL() : undefined
+    })
+    .setTitle(`👑 **${brand} — ${fp.name || 'BASIC PANNEL'}** 👑`)
     .setDescription(
-      `\`PANEL: ${fp.name || 'BASIC PANNEL'} | VERSION: ${fp.version || 'V3.4'} | STATUS: ${fp.status || 'ONLINE (SAFE)'}\`\n\n` +
-      `> ➤ **Key** : ${keyDisplay}\n\n` +
-      `### 📘 Quick Downloads & Setup\n\n` +
-      `Tap the interactive buttons below to download directly:\n` +
-      `- 📘 **Loader**\n` +
-      `- 🎮 **Free Fire APK**\n\n` +
-      `### 💬 Subscriber Rewards\n` +
-      `Drop sub & like proof in 🔒 No Access to claim your exclusive Subscriber role.\n\n` +
-      `### 🛒 Need Maximum Safety & UID Bypass?\n` +
-      `- 💳 Paid Panel includes Max Protection, 24/7 VIP Support & Instant Key Delivery.\n` +
-      `- ➤ Tap **Buy Paid Version** below to open an order ticket.`
+      `📡 **\`PANEL:\`** \`${fp.name || 'BASIC PANNEL'}\`  •  ⚡ **\`VERSION:\`** \`${fp.version || 'V3.4'}\`  •  🟢 **\`STATUS:\`** \`${fp.status || 'ONLINE (SAFE)'}\`\n\n` +
+      `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+      `🔑 **AUTHENTICATION KEY**\n` +
+      `> ⚡ **Key** : ${keyDisplay}\n` +
+      `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+      `⚡ **QUICK SETUP & DIRECT DOWNLOADS** ⚡\n` +
+      `> 📥 *Tap the interactive buttons below for instant 1-click download:*\n` +
+      `> 📘 **Loader** — *Latest safe client*\n` +
+      `> 🎮 **Free Fire APK** — *Bypass ready*\n` +
+      `> 🪜 **Emulator** — *PC optimized*\n\n` +
+      `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+      `💬 **SUBSCRIBER REWARDS & VIP ROLE** 💬\n` +
+      `> 🎁 *Drop sub & like proof in* 🔒 **No Access** *channel to claim your exclusive* **\`@Subscribers♡\`** *role!*\n\n` +
+      `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+      `🛒 **NEED MAXIMUM SAFETY & PRIVATE BYPASS?** 🛒\n` +
+      `> 💳 **Paid VIP Panel** *includes 100% Main ID Safety, 24/7 VIP Support & Instant Key Delivery.*\n` +
+      `> 🛍️ *Tap* **\`Buy Paid Version\`** *below to open an order ticket!*`
     )
-    .setFooter({ text: `${brand} • Free Panel System`, iconURL: client.user ? client.user.displayAvatarURL() : undefined });
+    .setFooter({ 
+      text: `🔥 ${brand} • Premium Gaming Community • Instant Gateway`, 
+      iconURL: client.user ? client.user.displayAvatarURL() : undefined 
+    });
 
   if (fp.banner && fp.banner.startsWith('http')) {
     embed.setImage(fp.banner);
