@@ -684,43 +684,23 @@ async function updateLiveFreePanelMessage(guildId = null) {
 async function registerSlashCommands() {
   const commands = [
     new SlashCommandBuilder()
-      .setName('postnow')
-      .setDescription('Interactive wizard to choose product & duration and post sell proof')
-      .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
-
-    new SlashCommandBuilder()
-      .setName('panel')
-      .setDescription('Open the Interactive Products & Auto-Poster Control Panel')
-      .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
-
-    new SlashCommandBuilder()
-      .setName('setup')
-      .setDescription('Open the Interactive Channel Setup Popup')
+      .setName('freepanel')
+      .setDescription('🎛️ Open Free Panel Loader (Edit Details, Key, Links, Toggle Online/Offline)')
       .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
     new SlashCommandBuilder()
       .setName('welcome')
-      .setDescription('Post a Welcome Card in welcome channel')
+      .setDescription('🎛️ Open Welcome Loader (Set Video/GIF, Test Welcome Card, Channel Setup)')
       .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
     new SlashCommandBuilder()
-      .setName('setvideo')
-      .setDescription('Upload or set a video/GIF for the Welcome Card directly from Discord')
-      .addAttachmentOption(option =>
-        option.setName('file')
-          .setDescription('Upload a Video (.mp4) or Animated GIF file directly')
-          .setRequired(false)
-      )
-      .addStringOption(option =>
-        option.setName('url')
-          .setDescription('Or paste a Video or GIF link URL')
-          .setRequired(false)
-      )
+      .setName('panel')
+      .setDescription('🎛️ Open Sell-Proof Loader (Products Toggle, Auto-Poster, Post Now)')
       .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
     new SlashCommandBuilder()
       .setName('setkey')
-      .setDescription('Set or update a Reusable Panel Key for a code')
+      .setDescription('🔑 Set or update a Reusable Panel Key for a code')
       .addStringOption(option =>
         option.setName('code')
           .setDescription('Secret code users type to claim (e.g. 1234)')
@@ -745,12 +725,12 @@ async function registerSlashCommands() {
 
     new SlashCommandBuilder()
       .setName('keys')
-      .setDescription('View all currently configured Redeem Codes & Panel Keys')
+      .setDescription('🔑 View all currently configured Redeem Codes & Panel Keys')
       .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
     new SlashCommandBuilder()
       .setName('delkey')
-      .setDescription('Delete a Redeem Code & Key configuration')
+      .setDescription('❌ Delete a Redeem Code & Key configuration')
       .addStringOption(option =>
         option.setName('code')
           .setDescription('Code to delete (e.g. 1234)')
@@ -760,57 +740,12 @@ async function registerSlashCommands() {
 
     new SlashCommandBuilder()
       .setName('claim')
-      .setDescription('Claim a Panel Key using a code')
+      .setDescription('🎁 Claim a Panel Key using a code')
       .addStringOption(option =>
         option.setName('code')
           .setDescription('Type the code provided to claim your panel key (e.g. 1234)')
           .setRequired(true)
-      ),
-
-    new SlashCommandBuilder()
-      .setName('setfreepanel')
-      .setDescription('Set Panel Name, Key & Link for Free Panel Release')
-      .addStringOption(opt => opt.setName('name').setDescription('Panel Name (e.g. BASIC PANNEL)'))
-      .addStringOption(opt => opt.setName('key').setDescription('Panel Key (e.g. SHIVAAY-KEY-9988)'))
-      .addStringOption(opt => opt.setName('link').setDescription('Download Link URL'))
-      .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
-
-    new SlashCommandBuilder()
-      .setName('sendfreepanel')
-      .setDescription('Send the Free Panel Release Embed with 5 Download & Tutorial buttons')
-      .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
-
-    new SlashCommandBuilder()
-      .setName('closepanel')
-      .setDescription('Instantly close Free Panel release, set key to EXPIRED and status to OFFLINE')
-      .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
-
-    new SlashCommandBuilder()
-      .setName('openpanel')
-      .setDescription('Instantly open Free Panel release, set status to ONLINE')
-      .addStringOption(opt => opt.setName('key').setDescription('Panel Key (e.g. SHIVAAY-KEY-9988)'))
-      .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
-
-    new SlashCommandBuilder()
-      .setName('setstatus')
-      .setDescription('Set Panel Status (ONLINE, OFFLINE, MAINTENANCE)')
-      .addStringOption(opt =>
-        opt.setName('status')
-          .setDescription('Select status')
-          .setRequired(true)
-          .addChoices(
-            { name: '🟢 ONLINE (SAFE)', value: 'ONLINE (SAFE)' },
-            { name: '🔴 OFFLINE (CLOSED)', value: 'OFFLINE (CLOSED)' },
-            { name: '🟡 MAINTENANCE MODE', value: 'MAINTENANCE MODE' }
-          )
       )
-      .addStringOption(opt => opt.setName('key').setDescription('Optional Key update'))
-      .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
-
-    new SlashCommandBuilder()
-      .setName('freepanel')
-      .setDescription('Open the Interactive Free Panel Control Panel')
-      .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
   ];
 
   const rest = new REST({ version: '10' }).setToken(TOKEN);
