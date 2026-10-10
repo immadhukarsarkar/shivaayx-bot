@@ -519,6 +519,18 @@ async function sendWelcomeMessage(channel, userMention, embed) {
   await channel.send(msgPayload).catch(() => {});
 }
 
+function generateRealisticSnowflakeId() {
+  const eras = [
+    // Older accounts (17-18 digits: e.g. 29482019481920481, 58492019482910481)
+    () => (20000000000000000n + BigInt(Math.floor(Math.random() * 59999999999999999))).toString(),
+    // Mid accounts (18 digits: e.g. 784920194829104810, 984920194829104810)
+    () => (700000000000000000n + BigInt(Math.floor(Math.random() * 299999999999999999))).toString(),
+    // Recent/Newer accounts (18-19 digits: e.g. 1084920194829104810, 1424920194829104810)
+    () => (1000000000000000000n + BigInt(Math.floor(Math.random() * 450000000000000000))).toString()
+  ];
+  return eras[Math.floor(Math.random() * eras.length)]();
+}
+
 async function triggerFakeWelcome() {
   if (!client.guilds.cache.size) return;
   const guild = client.guilds.cache.get(config.allowedGuildId) || client.guilds.cache.first();
@@ -527,7 +539,7 @@ async function triggerFakeWelcome() {
   const channel = findWelcomeChannel(guild);
   if (!channel) return;
 
-  const fakeUserId = (1300000000000000000n + BigInt(Math.floor(Math.random() * 299999999999999))).toString();
+  const fakeUserId = generateRealisticSnowflakeId();
   const fakeMention = `<@${fakeUserId}>`;
   
   const seed = Math.floor(Math.random() * 99999);
