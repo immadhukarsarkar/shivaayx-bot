@@ -457,31 +457,38 @@ function createKeyDeliveryEmbed(codeData, userMention) {
 function createFreePanelEmbed(guildId) {
   const brand = config.brandName || 'SHIVAAY X';
   const fp = config.freepanel || {
-    name: 'SILENT MAX',
+    name: 'BASIC PANNEL',
     version: 'V3.4',
-    status: '🟢 ONLINE (100% SAFE)',
+    status: 'ONLINE (SAFE)',
+    key: 'SHIVAAY-FREE-KEY-2026',
     panel_url: 'https://discord.com',
     apk_url: 'https://discord.com',
     req_url: 'https://discord.com',
-    tutorial_url: 'https://youtube.com',
-    note: '⚡ Free high-performance panel for Free Fire! Enjoy playing with maximum safety.',
+    emulator_url: 'https://discord.com',
+    emulator_text: 'Download Emulator Exe',
     banner: ''
   };
 
+  const keyDisplay = fp.key ? `\`${fp.key}\`` : '`FREE-KEY-SET-VIA-DISCORD`';
+  const emulatorDisplay = fp.emulator_text ? fp.emulator_text : 'Download Emulator Exe';
+
   const embed = new EmbedBuilder()
-    .setColor(0x00F0FF)
-    .setAuthor({
-      name: `${brand} • FREE PANEL RELEASE`,
-      iconURL: client.user ? client.user.displayAvatarURL() : undefined
-    })
-    .setTitle(`🔥 ${fp.name} [${fp.version}]`)
+    .setColor(0xE74C3C)
+    .setTitle(`🟥 **${brand} - FREE PANEL RELEASE**`)
     .setDescription(
-      `🛡️ **Status**: \`${fp.status}\`\n\n` +
-      `━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
-      `📌 **RELEASE DETAILS & NOTES**\n` +
-      `${fp.note || '⚡ Free high-performance panel for Free Fire! Enjoy playing with maximum safety.'}\n` +
-      `━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
-      `👇 **GET YOUR DOWNLOADS & TUTORIAL BELOW** 👇`
+      `\`PANEL: ${fp.name || 'BASIC PANNEL'} | VERSION: ${fp.version || 'V3.4'} | STATUS: ${fp.status || 'ONLINE (SAFE)'}\`\n\n` +
+      `> ➤ **Key** : ${keyDisplay}\n\n` +
+      `### 📘 Quick Downloads & Setup\n\n` +
+      `Tap the interactive buttons below to download directly:\n` +
+      `- 📘 **Free Panel**\n` +
+      `- 🎮 **Free Fire APK**\n` +
+      `- 📂 **Requirements**\n\n` +
+      `- 🪜 **Emulator**: ${emulatorDisplay}\n\n` +
+      `### 💬 Subscriber Rewards\n` +
+      `Drop sub & like proof in 🔒 No Access to claim your exclusive Subscriber role.\n\n` +
+      `### 🛒 Need Maximum Safety & UID Bypass?\n` +
+      `- 💳 Paid Panel includes Max Protection, 24/7 VIP Support & Instant Key Delivery.\n` +
+      `- ➤ Tap **Buy Paid Version** below to open an order ticket.`
     )
     .setFooter({ text: `${brand} • Free Panel System`, iconURL: client.user ? client.user.displayAvatarURL() : undefined });
 
@@ -506,31 +513,36 @@ function createFreePanelButtons(guildId) {
   const isValidUrl = (urlStr) => urlStr && typeof urlStr === 'string' && urlStr.startsWith('http');
 
   const btnPanel = new ButtonBuilder()
-    .setLabel('Download Panel')
+    .setLabel('Free Panel')
+    .setEmoji('📘')
     .setStyle(ButtonStyle.Link)
     .setURL(isValidUrl(fp.panel_url) ? fp.panel_url : 'https://discord.com');
 
   const btnApk = new ButtonBuilder()
-    .setLabel('Download Free Fire')
+    .setLabel('Free Fire APK')
+    .setEmoji('🎮')
     .setStyle(ButtonStyle.Link)
     .setURL(isValidUrl(fp.apk_url) ? fp.apk_url : 'https://discord.com');
 
   const btnReq = new ButtonBuilder()
-    .setLabel('Download Requirements')
+    .setLabel('Requirements')
+    .setEmoji('📂')
     .setStyle(ButtonStyle.Link)
     .setURL(isValidUrl(fp.req_url) ? fp.req_url : 'https://discord.com');
 
-  const btnTutorial = new ButtonBuilder()
-    .setLabel('Watch Tutorial')
+  const btnEmulator = new ButtonBuilder()
+    .setLabel('Emulator')
+    .setEmoji('🪜')
     .setStyle(ButtonStyle.Link)
-    .setURL(isValidUrl(fp.tutorial_url) ? fp.tutorial_url : 'https://youtube.com');
+    .setURL(isValidUrl(fp.emulator_url) ? fp.emulator_url : 'https://discord.com');
 
   const btnBuy = new ButtonBuilder()
     .setLabel('Buy Paid Version')
+    .setEmoji('🛒')
     .setStyle(ButtonStyle.Link)
     .setURL(ticketUrl);
 
-  return new ActionRowBuilder().addComponents(btnPanel, btnApk, btnReq, btnTutorial, btnBuy);
+  return new ActionRowBuilder().addComponents(btnPanel, btnApk, btnReq, btnEmulator, btnBuy);
 }
 
 async function registerSlashCommands() {
