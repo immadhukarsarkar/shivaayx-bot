@@ -497,21 +497,12 @@ client.on('guildCreate', async (guild) => {
 function createWelcomeEmbed(userMention, avatarUrl, memberCount = null) {
   const brand = config.brandName || 'SHIVAAY X';
   const gifUrl = config.welcomeGifUrl || 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHpuc3pndmdsMGcyeWVwb3FmNXU3dnRpaGNyeGZrbzV3bGl6aXRqYiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/26tP41FH76a1YvkoU/giphy.gif';
-  const ticketText = config.ticketChannelId ? `<#${config.ticketChannelId}>` : '`#ticket`';
-  const rulesText = config.rulesChannelId ? `<#${config.rulesChannelId}>` : '`rules`';
 
   const embed = new EmbedBuilder()
     .setColor(0x00F0FF) // Neon Cyan
     .setTitle(`⚡ WELCOME TO ${brand}`)
     .setDescription(
       `Hey ${userMention}, welcome to **${brand}**.\n\n` +
-      `A clean community for **Gaming • Panels • Services & More.**\n\n` +
-      `━━━━━━━━━━━━━━━━━━━━\n\n` +
-      `📜 **Rules**\n` +
-      `Please read the server rules in ${rulesText} before chatting.\n\n` +
-      `🎫 **Support**\n` +
-      `Need help or want to order something?\n` +
-      `Create a ticket in ${ticketText}.\n\n` +
       `Enjoy your stay. 🖤`
     )
     .setImage(gifUrl);
@@ -529,14 +520,6 @@ function findWelcomeChannel(guild) {
 
 async function sendWelcomeMessage(channel, userMention, embed) {
   const msgPayload = { content: `👋 Welcome ${userMention}!`, embeds: [embed] };
-  if (config.welcomeVideoUrl && config.welcomeVideoUrl.startsWith('http')) {
-    try {
-      const attachment = new AttachmentBuilder(config.welcomeVideoUrl);
-      msgPayload.files = [attachment];
-    } catch (err) {
-      console.error('Error attaching video:', err.message);
-    }
-  }
   await channel.send(msgPayload).catch(() => {});
 }
 
