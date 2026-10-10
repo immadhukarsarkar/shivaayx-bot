@@ -67,12 +67,12 @@ let config = {
     "shyx032": {
       "product": "BASIC PANNEL",
       "key": "SHIVAAY-FREE-KEY-2026",
-      "link": "https://discord.com"
+      "link": "https://drive.google.com/file/d/1rEdzFLi_pJhuT1QvfCnW-OfWx9geioWr/view?usp=sharing"
     },
     "1234": {
       "product": "BASIC PANNEL",
       "key": "SHIVAAY-FREE-KEY-2026",
-      "link": "https://discord.com"
+      "link": "https://drive.google.com/file/d/1rEdzFLi_pJhuT1QvfCnW-OfWx9geioWr/view?usp=sharing"
     }
   },
   productsMap: {
@@ -92,7 +92,7 @@ let config = {
     secret_code: 'SHYX032',
     codeEnabled: true,
     key: 'SHIVAAY-FREE-KEY-2026',
-    loader_link: 'https://discord.com',
+    loader_link: 'https://drive.google.com/file/d/1rEdzFLi_pJhuT1QvfCnW-OfWx9geioWr/view?usp=sharing',
     apk_link: 'https://discord.com',
     emulator_link: 'https://discord.com',
     panel_url: 'https://discord.com',
