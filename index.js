@@ -443,6 +443,21 @@ async function registerSlashCommands() {
     new SlashCommandBuilder()
       .setName('welcome')
       .setDescription('Post a Welcome Card in welcome channel')
+      .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+
+    new SlashCommandBuilder()
+      .setName('setvideo')
+      .setDescription('Upload or set a video/GIF for the Welcome Card directly from Discord')
+      .addAttachmentOption(option =>
+        option.setName('file')
+          .setDescription('Upload a Video (.mp4) or Animated GIF file directly')
+          .setRequired(false)
+      )
+      .addStringOption(option =>
+        option.setName('url')
+          .setDescription('Or paste a Video or GIF link URL')
+          .setRequired(false)
+      )
       .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
   ];
 
@@ -642,8 +657,28 @@ client.on('interactionCreate', async interaction => {
         await triggerFakeWelcome();
         await interaction.editReply({ content: `✅ Posted **Welcome Card** in ${channel}!` }).catch(() => {});
       }
+      else if (commandName === 'setvideo' || commandName === 'setwelcomevideo') {
+        const file = interaction.options.getAttachment('file');
+        const url = interaction.options.getString('url');
+
+        const videoUrl = file ? file.url : url;
+
+        if (!videoUrl) {
+          await interaction.reply({ content: '❌ **Error**: Please attach a video/GIF file OR provide a link URL!', flags: [MessageFlags.Ephemeral] }).catch(() => {});
+          return;
+        }
+
+        config.welcomeGifUrl = videoUrl;
+        config.welcomeVideoUrl = videoUrl;
+        saveConfig();
+
+        await interaction.reply({
+          content: `✅ **WELCOME VIDEO / GIF UPDATED SUCCESSFULLY!** 🎉\n\n📌 **Video Link**: ${videoUrl}\n\n*All future welcome messages will now use this video automatically!*`,
+          flags: [MessageFlags.Ephemeral]
+        }).catch(() => {});
+      }
       else {
-        await interaction.reply({ content: 'Use `/postnow` to post, `/panel` for products control, `/setup` for channels, or `/welcome` to post welcome card!', flags: [MessageFlags.Ephemeral] }).catch(() => {});
+        await interaction.reply({ content: 'Use `/postnow` to post, `/panel` for products, `/setup` for channels, `/welcome` for welcome card, or `/setvideo` to upload video!', flags: [MessageFlags.Ephemeral] }).catch(() => {});
       }
     }
 
