@@ -751,6 +751,13 @@ async function registerSlashCommands() {
   const rest = new REST({ version: '10' }).setToken(TOKEN);
 
   try {
+    console.log('🧹 Clearing old global slash commands...');
+    await rest.put(
+      Routes.applicationCommands(client.user.id),
+      { body: [] }
+    ).catch(() => {});
+    console.log('✅ Old global commands wiped clean!');
+
     console.log('Registering streamlined Guild-specific slash commands...');
     for (const guild of client.guilds.cache.values()) {
       await rest.put(
