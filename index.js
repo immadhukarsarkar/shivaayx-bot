@@ -500,7 +500,6 @@ function createWelcomeEmbed(userMention, avatarUrl, memberCount = null) {
 
   const embed = new EmbedBuilder()
     .setColor(0x00F0FF) // Neon Cyan
-    .setTitle(`⚡ WELCOME TO ${brand}`)
     .setDescription(`Hey ${userMention}, welcome to **${brand}**.`)
     .setImage(gifUrl);
 
@@ -516,7 +515,7 @@ function findWelcomeChannel(guild) {
 }
 
 async function sendWelcomeMessage(channel, userMention, embed) {
-  const msgPayload = { content: `👋 Welcome ${userMention}!`, embeds: [embed] };
+  const msgPayload = { embeds: [embed] };
   await channel.send(msgPayload).catch(() => {});
 }
 
