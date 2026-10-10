@@ -467,17 +467,30 @@ function createFreePanelEmbed(guildId) {
     banner: ''
   };
 
-  const keyDisplay = fp.key ? `\`${fp.key}\`` : '`SHIVAAY-FREE-KEY-2026`';
+  const isClosed = fp.status && (fp.status.includes('OFFLINE') || fp.status.includes('CLOSED'));
+  const isMaint = fp.status && fp.status.includes('MAINTENANCE');
+  
+  let statusEmoji = '🟢';
+  let embedColor = 0xFF0055;
+  if (isClosed) {
+    statusEmoji = '🔴';
+    embedColor = 0xFF0033;
+  } else if (isMaint) {
+    statusEmoji = '🟡';
+    embedColor = 0xF1C40F;
+  }
+
+  const keyDisplay = isClosed ? '`🔴 CLOSED / EXPIRED`' : (fp.key ? `\`${fp.key}\`` : '`SHIVAAY-FREE-KEY-2026`');
 
   const embed = new EmbedBuilder()
-    .setColor(0xFF0055)
+    .setColor(embedColor)
     .setAuthor({
       name: `⚡ ${brand} • OFFICIAL FREE RELEASE ⚡`,
       iconURL: client.user ? client.user.displayAvatarURL() : undefined
     })
     .setTitle(`👑 **${brand} — ${fp.name || 'BASIC PANNEL'}** 👑`)
     .setDescription(
-      `📡 **\`PANEL:\`** \`${fp.name || 'BASIC PANNEL'}\`  •  ⚡ **\`VERSION:\`** \`${fp.version || 'V3.4'}\`  •  🟢 **\`STATUS:\`** \`${fp.status || 'ONLINE (SAFE)'}\`\n\n` +
+      `📡 **\`PANEL:\`** \`${fp.name || 'BASIC PANNEL'}\`  •  ⚡ **\`VERSION:\`** \`${fp.version || 'V3.4'}\`  •  ${statusEmoji} **\`STATUS:\`** \`${fp.status || 'ONLINE (SAFE)'}\`\n\n` +
       `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
       `🔑 **AUTHENTICATION KEY**\n` +
       `> ⚡ **Key** : ${keyDisplay}\n` +
@@ -545,6 +558,27 @@ function createFreePanelButtons(guildId) {
     .setURL(ticketUrl);
 
   return new ActionRowBuilder().addComponents(btnLoader, btnApk, btnEmulator, btnBuy);
+}
+
+async function updateLiveFreePanelMessage(guildId = null) {
+  if (config.freepanelMessageId && config.freepanelChannelId) {
+    try {
+      const channel = await client.channels.fetch(config.freepanelChannelId);
+      if (channel) {
+        const message = await channel.messages.fetch(config.freepanelMessageId);
+        if (message) {
+          const embed = createFreePanelEmbed(guildId || channel.guild.id);
+          const buttons = createFreePanelButtons(guildId || channel.guild.id);
+          await message.edit({ embeds: [embed], components: [buttons] });
+          console.log(`✅ Live Free Panel message updated automatically in #${channel.name}!`);
+          return true;
+        }
+      }
+    } catch (err) {
+      console.log(`⚠️ Live message update check: ${err.message}`);
+    }
+  }
+  return false;
 }
 
 async function registerSlashCommands() {
@@ -644,6 +678,33 @@ async function registerSlashCommands() {
     new SlashCommandBuilder()
       .setName('sendfreepanel')
       .setDescription('Send the Free Panel Release Embed with 5 Download & Tutorial buttons')
+      .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+
+    new SlashCommandBuilder()
+      .setName('closepanel')
+      .setDescription('Instantly close Free Panel release, set key to EXPIRED and status to OFFLINE')
+      .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+
+    new SlashCommandBuilder()
+      .setName('openpanel')
+      .setDescription('Instantly open Free Panel release, set status to ONLINE')
+      .addStringOption(opt => opt.setName('key').setDescription('Panel Key (e.g. SHIVAAY-KEY-9988)'))
+      .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+
+    new SlashCommandBuilder()
+      .setName('setstatus')
+      .setDescription('Set Panel Status (ONLINE, OFFLINE, MAINTENANCE)')
+      .addStringOption(opt =>
+        opt.setName('status')
+          .setDescription('Select status')
+          .setRequired(true)
+          .addChoices(
+            { name: '🟢 ONLINE (SAFE)', value: 'ONLINE (SAFE)' },
+            { name: '🔴 OFFLINE (CLOSED)', value: 'OFFLINE (CLOSED)' },
+            { name: '🟡 MAINTENANCE MODE', value: 'MAINTENANCE MODE' }
+          )
+      )
+      .addStringOption(opt => opt.setName('key').setDescription('Optional Key update'))
       .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
   ];
 
@@ -937,19 +998,19 @@ client.on('interactionCreate', async interaction => {
         if (name) config.freepanel.name = name;
         if (key) config.freepanel.key = key;
         if (link) {
-          config.freepanel.panel_url = link;
-          config.freepanel.apk_url = link;
-          config.freepanel.req_url = link;
-          config.freepanel.emulator_url = link;
+          config.freepanel.loader_link = link;
+          config.freepanel.apk_link = link;
+          config.freepanel.emulator_link = link;
         }
 
         saveConfig();
+        await updateLiveFreePanelMessage(interaction.guildId);
 
         const embed = createFreePanelEmbed(interaction.guildId);
         const buttons = createFreePanelButtons(interaction.guildId);
 
         await interaction.reply({
-          content: `✅ **FREE PANEL CONFIGURATION UPDATED!** 🎉\nHere is how your release post will look:`,
+          content: `✅ **FREE PANEL CONFIGURATION UPDATED!** 🎉\nHere is how your release post will look (Live message auto-updated):`,
           embeds: [embed],
           components: [buttons],
           flags: [MessageFlags.Ephemeral]
@@ -959,11 +1020,57 @@ client.on('interactionCreate', async interaction => {
         const embed = createFreePanelEmbed(interaction.guildId);
         const buttons = createFreePanelButtons(interaction.guildId);
 
-        await interaction.channel.send({ embeds: [embed], components: [buttons] });
+        const msg = await interaction.channel.send({ embeds: [embed], components: [buttons] });
+        config.freepanelMessageId = msg.id;
+        config.freepanelChannelId = interaction.channelId;
+        saveConfig();
+
         await interaction.reply({ content: `✅ Posted **Free Panel Release Card** in ${interaction.channel}!`, flags: [MessageFlags.Ephemeral] }).catch(() => {});
       }
+      else if (commandName === 'closepanel') {
+        config.freepanel = config.freepanel || {};
+        config.freepanel.status = 'OFFLINE (CLOSED)';
+        config.freepanel.key = '🔴 CLOSED / EXPIRED';
+        saveConfig();
+
+        await updateLiveFreePanelMessage(interaction.guildId);
+
+        await interaction.reply({
+          content: `🔴 **FREE PANEL CLOSED SUCCESSFULLY!** Status set to **OFFLINE** and Key set to **EXPIRED** across the server!`,
+          flags: [MessageFlags.Ephemeral]
+        }).catch(() => {});
+      }
+      else if (commandName === 'openpanel') {
+        const newKey = interaction.options.getString('key');
+        config.freepanel = config.freepanel || {};
+        config.freepanel.status = 'ONLINE (SAFE)';
+        if (newKey) config.freepanel.key = newKey;
+        saveConfig();
+
+        await updateLiveFreePanelMessage(interaction.guildId);
+
+        await interaction.reply({
+          content: `🟢 **FREE PANEL IS NOW ONLINE & ACTIVE!** Status set to **ONLINE (SAFE)**!`,
+          flags: [MessageFlags.Ephemeral]
+        }).catch(() => {});
+      }
+      else if (commandName === 'setstatus') {
+        const newStatus = interaction.options.getString('status');
+        const newKey = interaction.options.getString('key');
+        config.freepanel = config.freepanel || {};
+        config.freepanel.status = newStatus;
+        if (newKey) config.freepanel.key = newKey;
+        saveConfig();
+
+        await updateLiveFreePanelMessage(interaction.guildId);
+
+        await interaction.reply({
+          content: `⚙️ **PANEL STATUS UPDATED TO: \`${newStatus}\`!** Live post updated automatically.`,
+          flags: [MessageFlags.Ephemeral]
+        }).catch(() => {});
+      }
       else {
-        await interaction.reply({ content: 'Use `/postnow`, `/panel`, `/setup`, `/welcome`, `/setkey`, `/setfreepanel`, or `/sendfreepanel`!', flags: [MessageFlags.Ephemeral] }).catch(() => {});
+        await interaction.reply({ content: 'Use `/postnow`, `/panel`, `/setup`, `/welcome`, `/setkey`, `/setfreepanel`, `/sendfreepanel`, `/closepanel`, `/openpanel`, or `/setstatus`!', flags: [MessageFlags.Ephemeral] }).catch(() => {});
       }
     }
 
