@@ -93,7 +93,7 @@ let config = {
     codeEnabled: true,
     key: 'SHIVAAY-FREE-KEY-2026',
     loader_link: 'https://drive.google.com/file/d/1rEdzFLi_pJhuT1QvfCnW-OfWx9geioWr/view?usp=sharing',
-    apk_link: 'https://discord.com',
+    apk_link: 'https://drive.google.com/file/d/1NbipBwSBd0eL15WfHBOj4C6STof29FHY/view?usp=sharing',
     emulator_link: 'https://discord.com',
     panel_url: 'https://discord.com',
     banner: ''
