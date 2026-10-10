@@ -504,9 +504,11 @@ function createFreePanelEmbed(guildId) {
       `💬 **SUBSCRIBER REWARDS & VIP ROLE** 💬\n` +
       `> 🎁 *Drop sub & like proof in* 🔒 **No Access** *channel to claim your exclusive* **\`@Subscribers♡\`** *role!*\n\n` +
       `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
-      `🛒 **NEED MAXIMUM SAFETY & PRIVATE BYPASS?** 🛒\n` +
-      `> 💳 **Paid VIP Panel** *includes 100% Main ID Safety, 24/7 VIP Support & Instant Key Delivery.*\n` +
-      `> 🛍️ *Tap* **\`Buy Paid Version\`** *below to open an order ticket!*`
+      `\`\`\`diff\n` +
+      `+ 🛒 NEED MAXIMUM SAFETY & PRIVATE BYPASS? +\n` +
+      `+ 💳 Paid Panel includes 100% Main ID Protection, 24/7 VIP Support & Instant Key!\n` +
+      `+ 🛍️ Tap [Buy Paid Version] button below to open an order ticket!\n` +
+      `\`\`\``
     )
     .setFooter({ 
       text: `🔥 ${brand} • Premium Gaming Community • Instant Gateway`, 
