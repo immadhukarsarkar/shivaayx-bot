@@ -30,12 +30,13 @@
     "name": "BASIC PANNEL",
     "version": "V3.4",
     "status": "ONLINE (SAFE)",
+    "secret_code": "1234",
+    "codeEnabled": true,
     "key": "SHIVAAY-FREE-KEY-2026",
+    "loader_link": "https://discord.com",
+    "apk_link": "https://discord.com",
+    "emulator_link": "https://discord.com",
     "panel_url": "https://discord.com",
-    "apk_url": "https://discord.com",
-    "req_url": "https://discord.com",
-    "emulator_url": "https://discord.com",
-    "emulator_text": "Download Emulator Exe",
     "banner": ""
   }
 }
