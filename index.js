@@ -554,10 +554,10 @@ function createFreePanelButtons(guildId) {
     .setURL(isValidUrl(fp.emulator_link) ? fp.emulator_link : 'https://discord.com');
 
   const btnBuy = new ButtonBuilder()
+    .setCustomId('btn_buy_paid_version')
     .setLabel('Buy Paid Version')
     .setEmoji('🛒')
-    .setStyle(ButtonStyle.Link)
-    .setURL(ticketUrl);
+    .setStyle(ButtonStyle.Success);
 
   return new ActionRowBuilder().addComponents(btnLoader, btnApk, btnEmulator, btnBuy);
 }
@@ -1323,6 +1323,19 @@ client.on('interactionCreate', async interaction => {
         await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
         await triggerFakeWelcome();
         await interaction.followUp({ content: `🧪 **Test Welcome Card sent directly to welcome channel!**`, flags: [MessageFlags.Ephemeral] });
+      }
+      else if (interaction.customId === 'btn_buy_paid_version') {
+        let ticketUrl = 'https://discord.com';
+        if (interaction.guildId && config.ticketChannelId) {
+          ticketUrl = `https://discord.com/channels/${interaction.guildId}/${config.ticketChannelId}`;
+        } else if (BUY_LINK && BUY_LINK.startsWith('http')) {
+          ticketUrl = BUY_LINK;
+        }
+
+        await interaction.reply({
+          content: `🛒 **NEED PAID VIP PANEL & MAXIMUM PROTECTION?**\n\n👉 **Click here to open an Order Ticket**: ${ticketUrl}`,
+          flags: [MessageFlags.Ephemeral]
+        }).catch(() => {});
       }
     }
 
