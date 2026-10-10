@@ -564,32 +564,27 @@ function createFreePanelDashboardEmbed() {
   const brand = config.brandName || 'SHIVAAY X';
   const fp = config.freepanel || {};
   const isClosed = fp.status && (fp.status.includes('OFFLINE') || fp.status.includes('CLOSED'));
+  const isCodeEnabled = fp.codeEnabled !== false;
   const liveChannelText = config.freepanelChannelId ? `<#${config.freepanelChannelId}>` : '`Not Posted Yet`';
-
-  config.keysMap = config.keysMap || {};
-  const keysEntries = Object.entries(config.keysMap);
-  const keysListStr = keysEntries.map(([code, item]) => {
-    return `🔹 Code: \`${code}\` ➔ **${item.product}** | Key: \`${item.key}\``;
-  }).join('\n') || '*No ticket redeem codes added yet*';
 
   const embed = new EmbedBuilder()
     .setColor(isClosed ? 0xFF0033 : 0x00FF88)
-    .setTitle(`🎛️ ${brand} • Free Panel & Ticket Keys Loader`)
+    .setTitle(`🎛️ ${brand} • Free Panel Master Control Panel`)
     .setDescription(
-      `Manage your Free Panel Release & Ticket Codes directly using buttons below:\n\n` +
-      `📦 **Panel Name**: \`${fp.name || 'BASIC PANNEL'}\`\n` +
-      `⚡ **Version**: \`${fp.version || 'V3.4'}\`\n` +
-      `🛡️ **Status**: ${isClosed ? '🔴 **OFFLINE (CLOSED)**' : '🟢 **ONLINE (SAFE)**'}\n` +
-      `🔑 **Current Release Key**: \`${fp.key || 'SHIVAAY-FREE-KEY-2026'}\`\n` +
-      `📥 **Download Link**: ${fp.loader_link ? `[Click to Test](${fp.loader_link})` : '`Default`'}\n` +
+      `Manage your Free Panel Release & Secret Claims directly below:\n\n` +
+      `📦 **Product / Panel Name**: \`${fp.name || 'BASIC PANNEL'}\`\n` +
+      `🔑 **Release Key**: \`${fp.key || 'SHIVAAY-FREE-KEY-2026'}\`\n` +
+      `🛡️ **Panel Status**: ${isClosed ? '🔴 **OFFLINE (CLOSED)**' : '🟢 **ONLINE (SAFE)**'}\n` +
+      `📥 **Loader File Link**: ${fp.loader_link ? `[Click to Test](${fp.loader_link})` : '`Default`'}\n` +
+      `🪜 **Emulator File Link**: ${fp.emulator_link ? `[Click to Test](${fp.emulator_link})` : '`Default`'}\n` +
       `📌 **Live Posted Channel**: ${liveChannelText}\n\n` +
       `━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
-      `🔑 **Active Ticket Claim Codes (${keysEntries.length})**:\n` +
-      `${keysListStr}\n\n` +
+      `🔒 **Ticket Secret Code**: \`${fp.secret_code || '1234'}\`\n` +
+      `⚡ **Secret Claiming Status**: ${isCodeEnabled ? '🟢 **ENABLED (Active)**' : '🔴 **DISABLED (Off)**'}\n\n` +
       `━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
-      `*Click buttons below to edit panel/key, add ticket codes via popup form, toggle online/offline, or post release!*`
+      `*Click buttons below to edit all details via 1-click Popup Box, toggle secret code ON/OFF, toggle status, or post release!*`
     )
-    .setFooter({ text: `${brand} Free Panel Loader • 1-Click Management`, iconURL: client.user ? client.user.displayAvatarURL() : undefined });
+    .setFooter({ text: `${brand} Master Loader • All-in-1 Control`, iconURL: client.user ? client.user.displayAvatarURL() : undefined });
 
   if (config.logoUrl && config.logoUrl.startsWith('http')) {
     embed.setThumbnail(config.logoUrl);
@@ -601,16 +596,17 @@ function createFreePanelDashboardEmbed() {
 function createFreePanelDashboardComponents() {
   const fp = config.freepanel || {};
   const isClosed = fp.status && (fp.status.includes('OFFLINE') || fp.status.includes('CLOSED'));
+  const isCodeEnabled = fp.codeEnabled !== false;
 
-  const btnEdit = new ButtonBuilder()
-    .setCustomId('btn_fp_edit_modal')
-    .setLabel('✏️ Edit Panel & Key')
+  const btnEditMaster = new ButtonBuilder()
+    .setCustomId('btn_fp_edit_master_modal')
+    .setLabel('✏️ Edit All Details & Code')
     .setStyle(ButtonStyle.Primary);
 
-  const btnAddCode = new ButtonBuilder()
-    .setCustomId('btn_add_code_modal')
-    .setLabel('🔑 Add Ticket Code')
-    .setStyle(ButtonStyle.Success);
+  const btnToggleCode = new ButtonBuilder()
+    .setCustomId('btn_fp_toggle_code')
+    .setLabel(isCodeEnabled ? '🔒 Secret Code: ON' : '🔒 Secret Code: OFF')
+    .setStyle(isCodeEnabled ? ButtonStyle.Success : ButtonStyle.Secondary);
 
   const btnToggleStatus = new ButtonBuilder()
     .setCustomId('btn_fp_toggle_status')
@@ -622,7 +618,7 @@ function createFreePanelDashboardComponents() {
     .setLabel('🚀 Post / Send Release')
     .setStyle(ButtonStyle.Secondary);
 
-  const row1 = new ActionRowBuilder().addComponents(btnEdit, btnAddCode);
+  const row1 = new ActionRowBuilder().addComponents(btnEditMaster, btnToggleCode);
   const row2 = new ActionRowBuilder().addComponents(btnToggleStatus, btnSend);
 
   return [row1, row2];
@@ -1207,40 +1203,65 @@ client.on('interactionCreate', async interaction => {
         modal.addComponents(new ActionRowBuilder().addComponents(nameInput));
         await interaction.showModal(modal);
       }
-      else if (interaction.customId === 'btn_fp_edit_modal') {
+      else if (interaction.customId === 'btn_fp_edit_master_modal') {
         const fp = config.freepanel || {};
         const modal = new ModalBuilder()
-          .setCustomId('modal_fp_edit')
-          .setTitle('✏️ Edit Free Panel Details');
+          .setCustomId('modal_fp_master_edit')
+          .setTitle('✏️ Edit Free Panel & Secret Code');
 
         const nameInput = new TextInputBuilder()
-          .setCustomId('fp_name_input')
-          .setLabel('Panel Name')
+          .setCustomId('m_name_input')
+          .setLabel('Product / Panel Name')
           .setStyle(TextInputStyle.Short)
           .setValue(fp.name || 'BASIC PANNEL')
           .setRequired(true);
 
+        const codeInput = new TextInputBuilder()
+          .setCustomId('m_code_input')
+          .setLabel('Ticket Secret Code (e.g. 1234)')
+          .setStyle(TextInputStyle.Short)
+          .setValue(fp.secret_code || '1234')
+          .setRequired(true);
+
         const keyInput = new TextInputBuilder()
-          .setCustomId('fp_key_input')
-          .setLabel('Panel Key')
+          .setCustomId('m_key_input')
+          .setLabel('Release Key String')
           .setStyle(TextInputStyle.Short)
           .setValue(fp.key || 'SHIVAAY-FREE-KEY-2026')
           .setRequired(true);
 
-        const linkInput = new TextInputBuilder()
-          .setCustomId('fp_link_input')
-          .setLabel('Download Link URL')
+        const loaderInput = new TextInputBuilder()
+          .setCustomId('m_loader_input')
+          .setLabel('Loader File Link URL')
           .setStyle(TextInputStyle.Short)
           .setValue(fp.loader_link || 'https://discord.com')
           .setRequired(false);
 
+        const emulatorInput = new TextInputBuilder()
+          .setCustomId('m_emulator_input')
+          .setLabel('Emulator File Link URL')
+          .setStyle(TextInputStyle.Short)
+          .setValue(fp.emulator_link || 'https://discord.com')
+          .setRequired(false);
+
         modal.addComponents(
           new ActionRowBuilder().addComponents(nameInput),
+          new ActionRowBuilder().addComponents(codeInput),
           new ActionRowBuilder().addComponents(keyInput),
-          new ActionRowBuilder().addComponents(linkInput)
+          new ActionRowBuilder().addComponents(loaderInput),
+          new ActionRowBuilder().addComponents(emulatorInput)
         );
 
         await interaction.showModal(modal);
+      }
+      else if (interaction.customId === 'btn_fp_toggle_code') {
+        config.freepanel = config.freepanel || {};
+        config.freepanel.codeEnabled = config.freepanel.codeEnabled === false ? true : false;
+        saveConfig();
+
+        const updatedEmbed = createFreePanelDashboardEmbed();
+        const updatedComponents = createFreePanelDashboardComponents();
+        await interaction.update({ embeds: [updatedEmbed], components: updatedComponents });
       }
       else if (interaction.customId === 'btn_fp_toggle_status') {
         config.freepanel = config.freepanel || {};
@@ -1291,48 +1312,6 @@ client.on('interactionCreate', async interaction => {
         await triggerFakeWelcome();
         await interaction.followUp({ content: `🧪 **Test Welcome Card sent directly to welcome channel!**`, flags: [MessageFlags.Ephemeral] });
       }
-      else if (interaction.customId === 'btn_add_code_modal') {
-        const modal = new ModalBuilder()
-          .setCustomId('modal_add_code')
-          .setTitle('🔑 Add Ticket Redeem Code');
-
-        const codeInput = new TextInputBuilder()
-          .setCustomId('code_val_input')
-          .setLabel('Secret Code (e.g. 1234)')
-          .setStyle(TextInputStyle.Short)
-          .setPlaceholder('1234')
-          .setRequired(true);
-
-        const prodInput = new TextInputBuilder()
-          .setCustomId('code_prod_input')
-          .setLabel('Product / Panel Name')
-          .setStyle(TextInputStyle.Short)
-          .setValue('Free Fire Panel')
-          .setRequired(true);
-
-        const keyInput = new TextInputBuilder()
-          .setCustomId('code_key_input')
-          .setLabel('Panel Key String')
-          .setStyle(TextInputStyle.Short)
-          .setPlaceholder('SHIVAAY-KEY-9988')
-          .setRequired(true);
-
-        const linkInput = new TextInputBuilder()
-          .setCustomId('code_link_input')
-          .setLabel('Optional Download Link')
-          .setStyle(TextInputStyle.Short)
-          .setPlaceholder('https://...')
-          .setRequired(false);
-
-        modal.addComponents(
-          new ActionRowBuilder().addComponents(codeInput),
-          new ActionRowBuilder().addComponents(prodInput),
-          new ActionRowBuilder().addComponents(keyInput),
-          new ActionRowBuilder().addComponents(linkInput)
-        );
-
-        await interaction.showModal(modal);
-      }
     }
 
     else if (interaction.isModalSubmit()) {
@@ -1361,25 +1340,35 @@ client.on('interactionCreate', async interaction => {
         }
         await interaction.reply({ content: `✅ Added **${newName}** to active products list!`, flags: [MessageFlags.Ephemeral] });
       }
-      else if (interaction.customId === 'modal_fp_edit') {
-        const name = interaction.fields.getTextInputValue('fp_name_input').trim();
-        const key = interaction.fields.getTextInputValue('fp_key_input').trim();
-        const link = interaction.fields.getTextInputValue('fp_link_input').trim();
+      else if (interaction.customId === 'modal_fp_master_edit') {
+        const name = interaction.fields.getTextInputValue('m_name_input').trim();
+        const code = interaction.fields.getTextInputValue('m_code_input').trim().toLowerCase();
+        const key = interaction.fields.getTextInputValue('m_key_input').trim();
+        const loaderLink = interaction.fields.getTextInputValue('m_loader_input').trim();
+        const emulatorLink = interaction.fields.getTextInputValue('m_emulator_input').trim();
 
         config.freepanel = config.freepanel || {};
         if (name) config.freepanel.name = name;
+        if (code) config.freepanel.secret_code = code;
         if (key) config.freepanel.key = key;
-        if (link) {
-          config.freepanel.loader_link = link;
-          config.freepanel.apk_link = link;
-          config.freepanel.emulator_link = link;
+        if (loaderLink) {
+          config.freepanel.loader_link = loaderLink;
+          config.freepanel.apk_link = loaderLink;
+        }
+        if (emulatorLink) config.freepanel.emulator_link = emulatorLink;
+
+        if (code && key) {
+          config.keysMap = config.keysMap || {};
+          config.keysMap[code] = { product: name || 'Free Fire Panel', key: key, link: loaderLink || '' };
         }
 
         saveConfig();
         await updateLiveFreePanelMessage(interaction.guildId);
 
         await interaction.reply({
-          content: `✅ **FREE PANEL DETAILS UPDATED SUCCESSFULLY!** 🎉\nLive release post updated automatically!`,
+          content: `✅ **ALL FREE PANEL DETAILS & SECRET CODE UPDATED!** 🎉\n` +
+                   `📦 **Panel**: \`${name}\` | 🔑 **Key**: \`${key}\` | 🔒 **Code**: \`${code}\`\n\n` +
+                   `*Live release post updated automatically!*`,
           flags: [MessageFlags.Ephemeral]
         });
       }
@@ -1439,6 +1428,11 @@ client.on('messageCreate', async (message) => {
   }
 
   if (codeMatch) {
+    if (config.freepanel && config.freepanel.codeEnabled === false) {
+      await message.channel.send({ content: `⚠️ ${message.author.toString()} **Ticket Secret Code Claiming is currently DISABLED by Admin!**` }).catch(() => {});
+      return;
+    }
+
     const codeData = config.keysMap[codeMatch];
     const embed = createKeyDeliveryEmbed(codeData, message.author.toString());
     await message.channel.send({ content: `👋 ${message.author.toString()}`, embeds: [embed] }).catch(() => {});
