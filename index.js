@@ -560,6 +560,106 @@ function createFreePanelButtons(guildId) {
   return new ActionRowBuilder().addComponents(btnLoader, btnApk, btnEmulator, btnBuy);
 }
 
+function createFreePanelDashboardEmbed() {
+  const brand = config.brandName || 'SHIVAAY X';
+  const fp = config.freepanel || {};
+  const isClosed = fp.status && (fp.status.includes('OFFLINE') || fp.status.includes('CLOSED'));
+  const liveChannelText = config.freepanelChannelId ? `<#${config.freepanelChannelId}>` : '`Not Posted Yet`';
+
+  const embed = new EmbedBuilder()
+    .setColor(isClosed ? 0xFF0033 : 0x00FF88)
+    .setTitle(`🎛️ ${brand} • Free Panel Control Panel`)
+    .setDescription(
+      `Manage your Free Panel Release directly using the interactive controls below:\n\n` +
+      `📦 **Panel Name**: \`${fp.name || 'BASIC PANNEL'}\`\n` +
+      `⚡ **Version**: \`${fp.version || 'V3.4'}\`\n` +
+      `🛡️ **Status**: ${isClosed ? '🔴 **OFFLINE (CLOSED)**' : '🟢 **ONLINE (SAFE)**'}\n` +
+      `🔑 **Current Key**: \`${fp.key || 'SHIVAAY-FREE-KEY-2026'}\`\n` +
+      `📥 **Download Link**: ${fp.loader_link ? `[Click to Test](${fp.loader_link})` : '`Default`'}\n` +
+      `📌 **Live Posted Channel**: ${liveChannelText}\n\n` +
+      `━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+      `*Click buttons below to edit details via popup box, toggle online/offline, or post release!*`
+    )
+    .setFooter({ text: `${brand} Free Panel Loader • 1-Click Management`, iconURL: client.user ? client.user.displayAvatarURL() : undefined });
+
+  if (config.logoUrl && config.logoUrl.startsWith('http')) {
+    embed.setThumbnail(config.logoUrl);
+  }
+
+  return embed;
+}
+
+function createFreePanelDashboardComponents() {
+  const fp = config.freepanel || {};
+  const isClosed = fp.status && (fp.status.includes('OFFLINE') || fp.status.includes('CLOSED'));
+
+  const btnEdit = new ButtonBuilder()
+    .setCustomId('btn_fp_edit_modal')
+    .setLabel('✏️ Edit Details & Key')
+    .setStyle(ButtonStyle.Primary);
+
+  const btnToggleStatus = new ButtonBuilder()
+    .setCustomId('btn_fp_toggle_status')
+    .setLabel(isClosed ? '🔴 Status: OFFLINE (Click to Open)' : '🟢 Status: ONLINE (Click to Close)')
+    .setStyle(isClosed ? ButtonStyle.Danger : ButtonStyle.Success);
+
+  const btnSend = new ButtonBuilder()
+    .setCustomId('btn_fp_send_release')
+    .setLabel('🚀 Post / Send Release')
+    .setStyle(ButtonStyle.Secondary);
+
+  return [new ActionRowBuilder().addComponents(btnEdit, btnToggleStatus, btnSend)];
+}
+
+function createWelcomeDashboardEmbed() {
+  const brand = config.brandName || 'SHIVAAY X';
+  const ch = findWelcomeChannel(client.guilds.cache.get(config.allowedGuildId) || client.guilds.cache.first());
+  const welcomeChannelText = ch ? `<#${ch.id}>` : '`Not Set`';
+
+  const embed = new EmbedBuilder()
+    .setColor(0x00F0FF)
+    .setTitle(`🎛️ ${brand} • Welcome Card Control Panel`)
+    .setDescription(
+      `Manage your Welcome System & Video directly using the buttons below:\n\n` +
+      `📌 **Target Welcome Channel**: ${welcomeChannelText}\n` +
+      `🎬 **Welcome Video / GIF**: ${config.welcomeGifUrl ? `[View Media](${config.welcomeGifUrl})` : '`Default`'}\n\n` +
+      `━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+      `*Click buttons below to edit video URL via popup box or send a test welcome card!*`
+    )
+    .setFooter({ text: `${brand} Welcome Loader • 1-Click Management`, iconURL: client.user ? client.user.displayAvatarURL() : undefined });
+
+  if (config.welcomeGifUrl && config.welcomeGifUrl.startsWith('http')) {
+    embed.setImage(config.welcomeGifUrl);
+  }
+
+  return embed;
+}
+
+function createWelcomeDashboardComponents() {
+  const rows = [];
+
+  const btnSetVideo = new ButtonBuilder()
+    .setCustomId('btn_welcome_setvideo_modal')
+    .setLabel('🖼️ Set Video / GIF')
+    .setStyle(ButtonStyle.Primary);
+
+  const btnTestWelcome = new ButtonBuilder()
+    .setCustomId('btn_welcome_test_card')
+    .setLabel('🧪 Test Welcome Card')
+    .setStyle(ButtonStyle.Success);
+
+  rows.push(new ActionRowBuilder().addComponents(btnSetVideo, btnTestWelcome));
+
+  const targetChannelSelect = new ChannelSelectMenuBuilder()
+    .setCustomId('select_welcome_channel')
+    .setPlaceholder('📌 Pick Welcome Channel...')
+    .setChannelTypes(ChannelType.GuildText);
+
+  rows.push(new ActionRowBuilder().addComponents(targetChannelSelect));
+
+  return rows;
+}
+
 async function updateLiveFreePanelMessage(guildId = null) {
   if (config.freepanelMessageId && config.freepanelChannelId) {
     try {
@@ -705,6 +805,11 @@ async function registerSlashCommands() {
           )
       )
       .addStringOption(opt => opt.setName('key').setDescription('Optional Key update'))
+      .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+
+    new SlashCommandBuilder()
+      .setName('freepanel')
+      .setDescription('Open the Interactive Free Panel Control Panel')
       .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
   ];
 
@@ -889,16 +994,14 @@ client.on('interactionCreate', async interaction => {
         });
       }
       else if (commandName === 'welcome') {
-        await interaction.reply({ content: `⏳ Triggering **Welcome Card**...`, flags: [MessageFlags.Ephemeral] }).catch(() => {});
-
-        const channel = findWelcomeChannel(interaction.guild);
-        if (!channel) {
-          await interaction.editReply({ content: '❌ Could not find welcome channel! Set `#welcome` channel ID.' }).catch(() => {});
-          return;
-        }
-
-        await triggerFakeWelcome();
-        await interaction.editReply({ content: `✅ Posted **Welcome Card** in ${channel}!` }).catch(() => {});
+        const embed = createWelcomeDashboardEmbed();
+        const components = createWelcomeDashboardComponents();
+        await interaction.reply({ embeds: [embed], components: components }).catch(() => {});
+      }
+      else if (commandName === 'freepanel') {
+        const embed = createFreePanelDashboardEmbed();
+        const components = createFreePanelDashboardComponents();
+        await interaction.reply({ embeds: [embed], components: components }).catch(() => {});
       }
       else if (commandName === 'setvideo' || commandName === 'setwelcomevideo') {
         const file = interaction.options.getAttachment('file');
@@ -1131,6 +1234,15 @@ client.on('interactionCreate', async interaction => {
         const updatedComponents = createChannelsComponents();
         await interaction.update({ embeds: [updatedEmbed], components: updatedComponents });
       }
+      else if (interaction.customId === 'select_welcome_channel') {
+        const selectedChannelId = interaction.values[0];
+        config.welcomeChannelId = selectedChannelId;
+        saveConfig();
+
+        const updatedEmbed = createWelcomeDashboardEmbed();
+        const updatedComponents = createWelcomeDashboardComponents();
+        await interaction.update({ embeds: [updatedEmbed], components: updatedComponents });
+      }
     }
 
     else if (interaction.isButton()) {
@@ -1176,6 +1288,90 @@ client.on('interactionCreate', async interaction => {
         modal.addComponents(new ActionRowBuilder().addComponents(nameInput));
         await interaction.showModal(modal);
       }
+      else if (interaction.customId === 'btn_fp_edit_modal') {
+        const fp = config.freepanel || {};
+        const modal = new ModalBuilder()
+          .setCustomId('modal_fp_edit')
+          .setTitle('✏️ Edit Free Panel Details');
+
+        const nameInput = new TextInputBuilder()
+          .setCustomId('fp_name_input')
+          .setLabel('Panel Name')
+          .setStyle(TextInputStyle.Short)
+          .setValue(fp.name || 'BASIC PANNEL')
+          .setRequired(true);
+
+        const keyInput = new TextInputBuilder()
+          .setCustomId('fp_key_input')
+          .setLabel('Panel Key')
+          .setStyle(TextInputStyle.Short)
+          .setValue(fp.key || 'SHIVAAY-FREE-KEY-2026')
+          .setRequired(true);
+
+        const linkInput = new TextInputBuilder()
+          .setCustomId('fp_link_input')
+          .setLabel('Download Link URL')
+          .setStyle(TextInputStyle.Short)
+          .setValue(fp.loader_link || 'https://discord.com')
+          .setRequired(false);
+
+        modal.addComponents(
+          new ActionRowBuilder().addComponents(nameInput),
+          new ActionRowBuilder().addComponents(keyInput),
+          new ActionRowBuilder().addComponents(linkInput)
+        );
+
+        await interaction.showModal(modal);
+      }
+      else if (interaction.customId === 'btn_fp_toggle_status') {
+        config.freepanel = config.freepanel || {};
+        const isClosed = config.freepanel.status && (config.freepanel.status.includes('OFFLINE') || config.freepanel.status.includes('CLOSED'));
+        if (isClosed) {
+          config.freepanel.status = 'ONLINE (SAFE)';
+        } else {
+          config.freepanel.status = 'OFFLINE (CLOSED)';
+          config.freepanel.key = '🔴 CLOSED / EXPIRED';
+        }
+
+        saveConfig();
+        await updateLiveFreePanelMessage(interaction.guildId);
+
+        const updatedEmbed = createFreePanelDashboardEmbed();
+        const updatedComponents = createFreePanelDashboardComponents();
+        await interaction.update({ embeds: [updatedEmbed], components: updatedComponents });
+      }
+      else if (interaction.customId === 'btn_fp_send_release') {
+        const embed = createFreePanelEmbed(interaction.guildId);
+        const buttons = createFreePanelButtons(interaction.guildId);
+
+        const msg = await interaction.channel.send({ embeds: [embed], components: [buttons] });
+        config.freepanelMessageId = msg.id;
+        config.freepanelChannelId = interaction.channelId;
+        saveConfig();
+
+        await interaction.reply({ content: `🚀 **Posted Free Panel Release Embed in ${interaction.channel}!** Live status sync enabled.`, flags: [MessageFlags.Ephemeral] });
+      }
+      else if (interaction.customId === 'btn_welcome_setvideo_modal') {
+        const modal = new ModalBuilder()
+          .setCustomId('modal_welcome_setvideo')
+          .setTitle('🖼️ Set Welcome Video / GIF Link');
+
+        const urlInput = new TextInputBuilder()
+          .setCustomId('welcome_video_input')
+          .setLabel('Paste Video (.mp4) or GIF URL')
+          .setStyle(TextInputStyle.Short)
+          .setValue(config.welcomeGifUrl || '')
+          .setPlaceholder('https://media.giphy.com/...')
+          .setRequired(true);
+
+        modal.addComponents(new ActionRowBuilder().addComponents(urlInput));
+        await interaction.showModal(modal);
+      }
+      else if (interaction.customId === 'btn_welcome_test_card') {
+        await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
+        await triggerFakeWelcome();
+        await interaction.followUp({ content: `🧪 **Test Welcome Card sent directly to welcome channel!**`, flags: [MessageFlags.Ephemeral] });
+      }
     }
 
     else if (interaction.isModalSubmit()) {
@@ -1203,6 +1399,41 @@ client.on('interactionCreate', async interaction => {
           saveConfig();
         }
         await interaction.reply({ content: `✅ Added **${newName}** to active products list!`, flags: [MessageFlags.Ephemeral] });
+      }
+      else if (interaction.customId === 'modal_fp_edit') {
+        const name = interaction.fields.getTextInputValue('fp_name_input').trim();
+        const key = interaction.fields.getTextInputValue('fp_key_input').trim();
+        const link = interaction.fields.getTextInputValue('fp_link_input').trim();
+
+        config.freepanel = config.freepanel || {};
+        if (name) config.freepanel.name = name;
+        if (key) config.freepanel.key = key;
+        if (link) {
+          config.freepanel.loader_link = link;
+          config.freepanel.apk_link = link;
+          config.freepanel.emulator_link = link;
+        }
+
+        saveConfig();
+        await updateLiveFreePanelMessage(interaction.guildId);
+
+        await interaction.reply({
+          content: `✅ **FREE PANEL DETAILS UPDATED SUCCESSFULLY!** 🎉\nLive release post updated automatically!`,
+          flags: [MessageFlags.Ephemeral]
+        });
+      }
+      else if (interaction.customId === 'modal_welcome_setvideo') {
+        const url = interaction.fields.getTextInputValue('welcome_video_input').trim();
+        if (url) {
+          config.welcomeGifUrl = url;
+          config.welcomeVideoUrl = url;
+          saveConfig();
+        }
+
+        await interaction.reply({
+          content: `✅ **WELCOME VIDEO / GIF UPDATED SUCCESSFULLY!** 🎉\n📌 **URL**: ${url}`,
+          flags: [MessageFlags.Ephemeral]
+        });
       }
     }
   } catch (err) {
