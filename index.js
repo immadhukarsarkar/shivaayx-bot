@@ -577,14 +577,15 @@ function createFreePanelDashboardEmbed() {
       `📦 **Product / Panel Name**: \`${fp.name || 'BASIC PANNEL'}\`\n` +
       `🔑 **Release Key**: \`${fp.key || 'SHIVAAY-FREE-KEY-2026'}\`\n` +
       `🛡️ **Panel Status**: ${isClosed ? '🔴 **OFFLINE (CLOSED)**' : '🟢 **ONLINE (SAFE)**'}\n` +
-      `📥 **Loader File Link**: ${fp.loader_link ? `[Click to Test](${fp.loader_link})` : '`Default`'}\n` +
-      `🪜 **Emulator File Link**: ${fp.emulator_link ? `[Click to Test](${fp.emulator_link})` : '`Default`'}\n` +
+      `📘 **Loader Link**: ${fp.loader_link ? `[Click to Test](${fp.loader_link})` : '`Not Set`'}\n` +
+      `🎮 **Free Fire APK Link**: ${fp.apk_link ? `[Click to Test](${fp.apk_link})` : '`Not Set`'}\n` +
+      `🪜 **Emulator Link**: ${fp.emulator_link ? `[Click to Test](${fp.emulator_link})` : '`Not Set`'}\n` +
       `📌 **Live Posted Channel**: ${liveChannelText}\n\n` +
       `━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
       `🔒 **Ticket Secret Code**: \`${fp.secret_code || '1234'}\`\n` +
       `⚡ **Secret Claiming Status**: ${isCodeEnabled ? '🟢 **ENABLED (Active)**' : '🔴 **DISABLED (Off)**'}\n\n` +
       `━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
-      `*Click buttons below to edit all details via 1-click Popup Box, toggle secret code ON/OFF, toggle status, or post release!*`
+      `*Edit details or URLs via buttons below, or use \`/uploadfiles\` to upload ZIP/APK/EXE files directly!*`
     )
     .setFooter({ text: `${brand} Master Loader • All-in-1 Control`, iconURL: client.user ? client.user.displayAvatarURL() : undefined });
 
@@ -602,7 +603,12 @@ function createFreePanelDashboardComponents() {
 
   const btnEditMaster = new ButtonBuilder()
     .setCustomId('btn_fp_edit_master_modal')
-    .setLabel('✏️ Edit All Details & Code')
+    .setLabel('✏️ Edit Name, Key & Code')
+    .setStyle(ButtonStyle.Primary);
+
+  const btnEditUrls = new ButtonBuilder()
+    .setCustomId('btn_fp_edit_urls_modal')
+    .setLabel('🔗 Edit File URLs')
     .setStyle(ButtonStyle.Primary);
 
   const btnToggleCode = new ButtonBuilder()
@@ -612,15 +618,15 @@ function createFreePanelDashboardComponents() {
 
   const btnToggleStatus = new ButtonBuilder()
     .setCustomId('btn_fp_toggle_status')
-    .setLabel(isClosed ? '🔴 Status: OFFLINE (Open)' : '🟢 Status: ONLINE (Close)')
+    .setLabel(isClosed ? '🔴 Status: OFFLINE' : '🟢 Status: ONLINE')
     .setStyle(isClosed ? ButtonStyle.Danger : ButtonStyle.Success);
 
   const btnSend = new ButtonBuilder()
     .setCustomId('btn_fp_send_release')
-    .setLabel('🚀 Post / Send Release')
+    .setLabel('🚀 Post Release')
     .setStyle(ButtonStyle.Secondary);
 
-  const row1 = new ActionRowBuilder().addComponents(btnEditMaster, btnToggleCode);
+  const row1 = new ActionRowBuilder().addComponents(btnEditMaster, btnEditUrls, btnToggleCode);
   const row2 = new ActionRowBuilder().addComponents(btnToggleStatus, btnSend);
 
   return [row1, row2];
@@ -720,7 +726,27 @@ async function registerSlashCommands() {
         option.setName('code')
           .setDescription('Type the code provided to claim your panel key (e.g. 1234)')
           .setRequired(true)
+      ),
+
+    new SlashCommandBuilder()
+      .setName('uploadfiles')
+      .setDescription('📥 Upload ZIP/APK/EXE files directly for Loader, Free Fire APK, and Emulator')
+      .addAttachmentOption(opt =>
+        opt.setName('loader')
+           .setDescription('Upload Loader ZIP/EXE file')
+           .setRequired(false)
       )
+      .addAttachmentOption(opt =>
+        opt.setName('apk')
+           .setDescription('Upload Free Fire APK/ZIP file')
+           .setRequired(false)
+      )
+      .addAttachmentOption(opt =>
+        opt.setName('emulator')
+           .setDescription('Upload Emulator EXE/ZIP file')
+           .setRequired(false)
+      )
+      .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
   ];
 
   const rest = new REST({ version: '10' }).setToken(TOKEN);
@@ -919,6 +945,45 @@ client.on('interactionCreate', async interaction => {
         const embed = createFreePanelDashboardEmbed();
         const components = createFreePanelDashboardComponents();
         await interaction.reply({ embeds: [embed], components: components }).catch(() => {});
+      }
+      else if (commandName === 'uploadfiles') {
+        const loader = interaction.options.getAttachment('loader');
+        const apk = interaction.options.getAttachment('apk');
+        const emulator = interaction.options.getAttachment('emulator');
+
+        if (!loader && !apk && !emulator) {
+          await interaction.reply({
+            content: '❌ **Error**: Please attach at least one file (Loader, Free Fire APK, or Emulator)!',
+            flags: [MessageFlags.Ephemeral]
+          }).catch(() => {});
+          return;
+        }
+
+        config.freepanel = config.freepanel || {};
+        let updatedList = [];
+
+        if (loader) {
+          config.freepanel.loader_link = loader.url;
+          updatedList.push(`📘 **Loader File**: [${loader.name}](${loader.url})`);
+        }
+        if (apk) {
+          config.freepanel.apk_link = apk.url;
+          updatedList.push(`🎮 **Free Fire APK**: [${apk.name}](${apk.url})`);
+        }
+        if (emulator) {
+          config.freepanel.emulator_link = emulator.url;
+          updatedList.push(`🪜 **Emulator File**: [${emulator.name}](${emulator.url})`);
+        }
+
+        saveConfig();
+        await updateLiveFreePanelMessage(interaction.guildId);
+
+        await interaction.reply({
+          content: `✅ **FILES UPLOADED & LIVE DOWNLOAD LINKS UPDATED!** 🎉\n\n` +
+                   updatedList.join('\n') + `\n\n` +
+                   `*Live release post buttons auto-updated!*`,
+          flags: [MessageFlags.Ephemeral]
+        }).catch(() => {});
       }
       else if (commandName === 'setvideo' || commandName === 'setwelcomevideo') {
         const file = interaction.options.getAttachment('file');
@@ -1219,7 +1284,7 @@ client.on('interactionCreate', async interaction => {
         const fp = config.freepanel || {};
         const modal = new ModalBuilder()
           .setCustomId('modal_fp_master_edit')
-          .setTitle('✏️ Edit Free Panel & Secret Code');
+          .setTitle('✏️ Edit Name, Key & Secret Code');
 
         const nameInput = new TextInputBuilder()
           .setCustomId('m_name_input')
@@ -1242,25 +1307,44 @@ client.on('interactionCreate', async interaction => {
           .setValue(fp.key || 'SHIVAAY-FREE-KEY-2026')
           .setRequired(true);
 
+        modal.addComponents(
+          new ActionRowBuilder().addComponents(nameInput),
+          new ActionRowBuilder().addComponents(codeInput),
+          new ActionRowBuilder().addComponents(keyInput)
+        );
+
+        await interaction.showModal(modal);
+      }
+      else if (interaction.customId === 'btn_fp_edit_urls_modal') {
+        const fp = config.freepanel || {};
+        const modal = new ModalBuilder()
+          .setCustomId('modal_fp_urls_edit')
+          .setTitle('🔗 Edit Download File Links');
+
         const loaderInput = new TextInputBuilder()
           .setCustomId('m_loader_input')
-          .setLabel('Loader File Link URL')
+          .setLabel('📘 Loader File Link (URL)')
           .setStyle(TextInputStyle.Short)
           .setValue(fp.loader_link || 'https://discord.com')
           .setRequired(false);
 
+        const apkInput = new TextInputBuilder()
+          .setCustomId('m_apk_input')
+          .setLabel('🎮 Free Fire APK Link (URL)')
+          .setStyle(TextInputStyle.Short)
+          .setValue(fp.apk_link || 'https://discord.com')
+          .setRequired(false);
+
         const emulatorInput = new TextInputBuilder()
           .setCustomId('m_emulator_input')
-          .setLabel('Emulator File Link URL')
+          .setLabel('🪜 Emulator File Link (URL)')
           .setStyle(TextInputStyle.Short)
           .setValue(fp.emulator_link || 'https://discord.com')
           .setRequired(false);
 
         modal.addComponents(
-          new ActionRowBuilder().addComponents(nameInput),
-          new ActionRowBuilder().addComponents(codeInput),
-          new ActionRowBuilder().addComponents(keyInput),
           new ActionRowBuilder().addComponents(loaderInput),
+          new ActionRowBuilder().addComponents(apkInput),
           new ActionRowBuilder().addComponents(emulatorInput)
         );
 
@@ -1369,31 +1453,46 @@ client.on('interactionCreate', async interaction => {
         const name = interaction.fields.getTextInputValue('m_name_input').trim();
         const code = interaction.fields.getTextInputValue('m_code_input').trim().toLowerCase();
         const key = interaction.fields.getTextInputValue('m_key_input').trim();
-        const loaderLink = interaction.fields.getTextInputValue('m_loader_input').trim();
-        const emulatorLink = interaction.fields.getTextInputValue('m_emulator_input').trim();
 
         config.freepanel = config.freepanel || {};
         if (name) config.freepanel.name = name;
         if (code) config.freepanel.secret_code = code;
         if (key) config.freepanel.key = key;
-        if (loaderLink) {
-          config.freepanel.loader_link = loaderLink;
-          config.freepanel.apk_link = loaderLink;
-        }
-        if (emulatorLink) config.freepanel.emulator_link = emulatorLink;
 
         if (code && key) {
           config.keysMap = config.keysMap || {};
-          config.keysMap[code] = { product: name || 'Free Fire Panel', key: key, link: loaderLink || '' };
+          config.keysMap[code] = { product: name || 'Free Fire Panel', key: key, link: config.freepanel.loader_link || '' };
         }
 
         saveConfig();
         await updateLiveFreePanelMessage(interaction.guildId);
 
         await interaction.reply({
-          content: `✅ **ALL FREE PANEL DETAILS & SECRET CODE UPDATED!** 🎉\n` +
+          content: `✅ **FREE PANEL NAME, KEY & SECRET CODE UPDATED!** 🎉\n` +
                    `📦 **Panel**: \`${name}\` | 🔑 **Key**: \`${key}\` | 🔒 **Code**: \`${code}\`\n\n` +
                    `*Live release post updated automatically!*`,
+          flags: [MessageFlags.Ephemeral]
+        });
+      }
+      else if (interaction.customId === 'modal_fp_urls_edit') {
+        const loaderLink = interaction.fields.getTextInputValue('m_loader_input').trim();
+        const apkLink = interaction.fields.getTextInputValue('m_apk_input').trim();
+        const emulatorLink = interaction.fields.getTextInputValue('m_emulator_input').trim();
+
+        config.freepanel = config.freepanel || {};
+        if (loaderLink) config.freepanel.loader_link = loaderLink;
+        if (apkLink) config.freepanel.apk_link = apkLink;
+        if (emulatorLink) config.freepanel.emulator_link = emulatorLink;
+
+        saveConfig();
+        await updateLiveFreePanelMessage(interaction.guildId);
+
+        await interaction.reply({
+          content: `✅ **FREE PANEL DOWNLOAD FILE LINKS UPDATED!** 🎉\n\n` +
+                   `📘 **Loader Link**: ${loaderLink || '`Not Set`'}\n` +
+                   `🎮 **Free Fire APK Link**: ${apkLink || '`Not Set`'}\n` +
+                   `🪜 **Emulator Link**: ${emulatorLink || '`Not Set`'}\n\n` +
+                   `*Live release post buttons updated automatically!*`,
           flags: [MessageFlags.Ephemeral]
         });
       }
