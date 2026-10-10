@@ -64,8 +64,13 @@ let config = {
   welcomeGifUrl: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHpuc3pndmdsMGcyeWVwb3FmNXU3dnRpaGNyeGZrbzV3bGl6aXRqYiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/26tP41FH76a1YvkoU/giphy.gif',
   welcomeVideoUrl: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHpuc3pndmdsMGcyeWVwb3FmNXU3dnRpaGNyeGZrbzV3bGl6aXRqYiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/26tP41FH76a1YvkoU/giphy.gif',
   keysMap: {
+    "shyx032": {
+      "product": "BASIC PANNEL",
+      "key": "SHIVAAY-FREE-KEY-2026",
+      "link": "https://discord.com"
+    },
     "1234": {
-      "product": "Free Fire Panel",
+      "product": "BASIC PANNEL",
       "key": "SHIVAAY-FREE-KEY-2026",
       "link": "https://discord.com"
     }
@@ -84,7 +89,7 @@ let config = {
     name: 'BASIC PANNEL',
     version: 'V3.4',
     status: 'ONLINE (SAFE)',
-    secret_code: '1234',
+    secret_code: 'SHYX032',
     codeEnabled: true,
     key: 'SHIVAAY-FREE-KEY-2026',
     loader_link: 'https://discord.com',
