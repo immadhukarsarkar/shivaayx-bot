@@ -38,7 +38,7 @@
     "version": "V3.4",
     "status": "ONLINE (SAFE)",
     "secret_code": "1234",
-    "codeEnabled": false,
+    "codeEnabled": true,
     "key": "SHIVAAY-FREE-KEY-2026",
     "loader_link": "https://discord.com",
     "apk_link": "https://discord.com",
